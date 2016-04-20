@@ -108,9 +108,12 @@ public class FeatureBuilder {
                 //first previous word -- 2
             	String prev1Word = words.get(i-1);
             	wordFeature.add(prev1Word);
-            	//if current word is identical to first previous word -- 3
             	if (curWord.equals(prev1Word)) {
+            		//current word is identical to first previous word -- 3
             		wordFeature.add("SameAsPrevious");
+            	} else {
+            		//current word is identical to first previous word counterpart-- 3
+            		wordFeature.add("@@");
             	}
             	//combination of first previous word and current word -- 4
             	String tmp = prev1Word + curWord;
