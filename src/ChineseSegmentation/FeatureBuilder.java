@@ -99,18 +99,37 @@ public class FeatureBuilder {
      */
     private List<List<String>> GenerateFeature(List<String> words, List<String> states) {
         List<List<String>> features = new ArrayList<List<String>>();
-
         for (int i = 0; i < words.size(); i++) {
             List<String> wordFeature = new ArrayList<String>();
+            //current word
             String curWord = words.get(i);
             wordFeature.add(curWord);
-            // ???
             if (fileType == FileType.TRAINING) {
                 wordFeature.add(states.get(i));
             }
+            if (i > 0) {
+                //first previous word
+            	String prev1Word = words.get(i-1);
+            	wordFeature.add(prev1Word);
+            	//combination of first previous word and current word
+            	String tmp = prev1Word + curWord;
+            	wordFeature.add(tmp);
+            }
+            if (i < words.size() - 1) {
+                //first next word
+            	String next1Word = words.get(i+1);
+            	wordFeature.add(next1Word);
+            	//combination of current word and first next word
+            	String tmp = curWord + next1Word;
+            	wordFeature.add(tmp);
+            }
+            if (i > 0 && i < words.size() - 1) {
+            	//jump, combination of first previous word and first next word
+            	String tmp = words.get(i-1) + words.get(i+1);
+            	wordFeature.add(tmp);
+            }
             features.add(wordFeature);
         }
-
         return features;
     }
 
@@ -146,7 +165,6 @@ public class FeatureBuilder {
             states.clear();
         }
     }
-
 
     public static void main(String[] args) {
         String      dataPath = "";
