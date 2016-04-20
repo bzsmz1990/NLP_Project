@@ -101,32 +101,77 @@ public class FeatureBuilder {
         List<List<String>> features = new ArrayList<List<String>>();
         for (int i = 0; i < words.size(); i++) {
             List<String> wordFeature = new ArrayList<String>();
-            //current word
+            //current word -- 1
             String curWord = words.get(i);
             wordFeature.add(curWord);
             if (fileType == FileType.TRAINING) {
                 wordFeature.add(states.get(i));
             }
             if (i > 0) {
-                //first previous word
+                //first previous word -- 2
             	String prev1Word = words.get(i-1);
             	wordFeature.add(prev1Word);
-            	//combination of first previous word and current word
+            	//if current word is identical to first previous word -- 3
+            	if (curWord.equals(prev1Word)) {
+            		wordFeature.add("SameAsPrevious");
+            	}
+            	//combination of first previous word and current word -- 4
             	String tmp = prev1Word + curWord;
             	wordFeature.add(tmp);
+            	if (i > 1) {
+            		//second previous word -- 5
+            		String prev2Word = words.get(i-2);
+            		wordFeature.add(prev2Word);
+            		//combination of second previous and first previous word -- 6
+            		String tmp2 = prev2Word + prev1Word;
+            		wordFeature.add(tmp2);
+            	} else {
+            		//second previous word counterpart -- 5
+            		wordFeature.add("@@");
+            		//combination of second previous and first previous word counterpart -- 6
+            		wordFeature.add("@@");
+            	}
+            } else {
+            	//first previous word counterpart -- 2
+            	wordFeature.add("@@");
+            	//SameAsPrevious counter part -- 3
+            	wordFeature.add("@@");
+            	//combination of first previous word and current word counterpart -- 4
+            	wordFeature.add("@@");
+            	//second previous word counterpart -- 5
+        		wordFeature.add("@@");
+        		//combination of second previous and first previous word counterpart -- 6
+        		wordFeature.add("@@");
             }
+            
             if (i < words.size() - 1) {
-                //first next word
+                //first next word -- 7
             	String next1Word = words.get(i+1);
             	wordFeature.add(next1Word);
-            	//combination of current word and first next word
+            	//combination of current word and first next word -- 8
             	String tmp = curWord + next1Word;
             	wordFeature.add(tmp);
+            	if (i < words.size() - 2) {
+            		//second next word -- 9
+            		String next2Word = words.get(i+2);
+            		wordFeature.add(next2Word);
+            	}
+            } else {
+            	//first next word counterpart -- 7
+            	wordFeature.add("@@");
+            	//combination of current word and first next word counterpart -- 8
+            	wordFeature.add("@@");
+            	//second next word counterpart -- 9
+            	wordFeature.add("@@");
             }
+            
             if (i > 0 && i < words.size() - 1) {
-            	//jump, combination of first previous word and first next word
-            	String tmp = words.get(i-1) + words.get(i+1);
+            	//jump, combination of first previous word and first next word -- 10
+            	String tmp = words.get(i-1) + curWord + words.get(i+1);
             	wordFeature.add(tmp);
+            } else {
+            	//jump, combination of first previous word and first next word counterpart -- 10
+            	wordFeature.add("@@");
             }
             features.add(wordFeature);
         }
