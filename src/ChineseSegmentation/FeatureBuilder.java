@@ -104,9 +104,6 @@ public class FeatureBuilder {
             //current word -- 1
             String curWord = words.get(i);
             wordFeature.add(curWord);
-            if (fileType == FileType.TRAINING) {
-                wordFeature.add(states.get(i));
-            }
             if (i > 0) {
                 //first previous word -- 2
             	String prev1Word = words.get(i-1);
@@ -171,6 +168,13 @@ public class FeatureBuilder {
             	wordFeature.add(tmp);
             } else {
             	//jump, combination of first previous word and first next word counterpart -- 10
+            	wordFeature.add("@@");
+            }
+            if (fileType == FileType.TRAINING) {
+            	//tag for current word if training file -- 11
+                wordFeature.add(states.get(i));
+            } else {
+            	//tag for current word if training file counterpart -- 11
             	wordFeature.add("@@");
             }
             features.add(wordFeature);
