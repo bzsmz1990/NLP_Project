@@ -27,7 +27,7 @@ public class TrainingParser {
                         }
                     }
                     else if (word.length() == 1) {
-                        writer_2.write(word + "\t" + "S" + "\n");
+                        writer_2.write(word + "\t" + "B" + "\n");
                         writer_4.write(word + "\t" + "S" + "\n");
                         writer_5.write(word + "\t" + "S" + "\n");
                     }
