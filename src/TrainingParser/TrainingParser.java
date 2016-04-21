@@ -26,6 +26,11 @@ public class TrainingParser {
                             writer_5.write(current + "\t" + current + "\n");
                         }
                     }
+                    else if (word.length() == 1) {
+                        writer_2.write(word + "\t" + "S" + "\n");
+                        writer_4.write(word + "\t" + "S" + "\n");
+                        writer_5.write(word + "\t" + "S" + "\n");
+                    }
                     else {
                         for (int pos = 0; pos < word.length(); pos++) {
                             char current = word.charAt(pos);
