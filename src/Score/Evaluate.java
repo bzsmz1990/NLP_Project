@@ -121,23 +121,23 @@ public class Evaluate {
                 correct++;
             }
 
-//            if (testStates.get(i).equals("E") || testStates.get(i).equals("S")) {
-//                testGroupCount++;
-//                if (flag) {
-//                    correctGroupCount++;
-//                }
-//                flag = true;
-//            }
-//
-//            if (goldStates.get(i).equals("E") || goldStates.get(i).equals("S")) {
-//                goldGroupCount++;
-//            }
+            if (testStates.get(i).equals("E") || testStates.get(i).equals("S")) {
+                testGroupCount++;
+                if (flag) {
+                    correctGroupCount++;
+                }
+                flag = true;
+            }
+
+            if (goldStates.get(i).equals("E") || goldStates.get(i).equals("S")) {
+                goldGroupCount++;
+            }
         }
-        // PrintResult();
+        PrintResult();
     }
 
     private void ScoreFive() {
-
+        ScoreFour();
     }
 
     private void PrintResult() {

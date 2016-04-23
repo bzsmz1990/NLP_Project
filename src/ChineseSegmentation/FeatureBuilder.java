@@ -104,6 +104,7 @@ public class FeatureBuilder {
             //current word -- 1
             String curWord = words.get(i);
             wordFeature.add(curWord);
+
 //            if (i > 0) {
 //                //first previous word -- 2
 //            	String prev1Word = words.get(i-1);
@@ -175,13 +176,65 @@ public class FeatureBuilder {
 //            }
 
 
-            if (fileType == FileType.TRAINING) {
-            	//tag for current word if training file -- 11
-                wordFeature.add(states.get(i));
-            } else {
-            	//tag for current word if training file counterpart -- 11
-            	wordFeature.add("@@");
+//            if (fileType == FileType.TRAINING) {
+//            	//tag for current word if training file -- 11
+//                wordFeature.add(states.get(i));
+//            } else {
+//            	//tag for current word if training file counterpart -- 11
+//            	wordFeature.add("@@");
+//            }
+
+            String preWord = "NULL";
+            String nextWord = "NULL";
+            String prepreWord = "NULL2";
+            String nextnextWord = "NULL2";
+
+            //first previous word -- 2
+            if (i > 0) {
+                preWord = words.get(i - 1);
             }
+            wordFeature.add(preWord);
+
+            //first next word -- 3
+            if (i < words.size() - 1) {
+                nextWord = words.get(i + 1);
+            }
+            wordFeature.add(nextWord);
+
+            //combination of first previous word and current word -- 4
+            wordFeature.add(preWord + curWord);
+
+            //current word is identical to first previous word -- 5
+            if (curWord.equals(preWord)) {
+                wordFeature.add("AA");
+            } else {
+                wordFeature.add("AB");
+            }
+
+            //second previous word counterpart -- 6
+            if (i > 1) {
+                prepreWord = words.get(i - 2);
+            }
+            wordFeature.add(prepreWord);
+
+            //combination of current word and first next word counterpart -- 7
+            wordFeature.add(curWord + nextWord);
+
+            //second next word counterpart -- 8
+            if (i < words.size() - 2) {
+                nextnextWord = words.get(i + 2);
+            }
+            wordFeature.add(nextnextWord);
+
+            // combination of first previous word and first next word -- 9
+            wordFeature.add(preWord + nextWord);
+
+
+            //tag for current word if training file -- 10
+            if (fileType == FileType.TRAINING) {
+                wordFeature.add(states.get(i));
+            }
+
             features.add(wordFeature);
         }
         return features;

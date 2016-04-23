@@ -10,9 +10,9 @@ public class TrainingParser {
     public static void main(String[] args) {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(args[0]));
-            BufferedWriter writer_2 = new BufferedWriter(new FileWriter(args[1] + "pku_training_2.tag"));
-            BufferedWriter writer_4 = new BufferedWriter(new FileWriter(args[1] + "pku_training_4.tag"));
-            BufferedWriter writer_5 = new BufferedWriter(new FileWriter(args[1] + "pku_training_5.tag"));
+            BufferedWriter writer_2 = new BufferedWriter(new FileWriter(args[1] + File.separator + "pku_training_2.tag"));
+            BufferedWriter writer_4 = new BufferedWriter(new FileWriter(args[1] + File.separator + "pku_training_4.tag"));
+            BufferedWriter writer_5 = new BufferedWriter(new FileWriter(args[1] + File.separator + "pku_training_5.tag"));
             String line = null;
             while ((line = reader.readLine()) != null) {
                 String[] words = line.split("\\s+");
