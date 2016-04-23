@@ -105,104 +105,43 @@ public class FeatureBuilder {
             String curWord = words.get(i);
             wordFeature.add(curWord);
 
-//            if (i > 0) {
-//                //first previous word -- 2
-//            	String prev1Word = words.get(i-1);
-//            	wordFeature.add(prev1Word);
-//                if (curWord.equals(prev1Word)) {
-//            		//current word is identical to first previous word -- 3
-//            		wordFeature.add("SameAsPrevious");
-//            	} else {
-//            		//current word is identical to first previous word counterpart-- 3
-//            		wordFeature.add("@@");
-//            	}
-//            	//combination of first previous word and current word -- 4
-//            	String tmp = prev1Word + curWord;
-//            	wordFeature.add(tmp);
-//            	if (i > 1) {
-//            		//second previous word -- 5
-//            		String prev2Word = words.get(i-2);
-//            		wordFeature.add(prev2Word);
-//            		//combination of second previous and first previous word -- 6
-//            		String tmp2 = prev2Word + prev1Word;
-//            		wordFeature.add(tmp2);
-//            	} else {
-//            		//second previous word counterpart -- 5
-//            		wordFeature.add("@@");
-//            		//combination of second previous and first previous word counterpart -- 6
-//            		wordFeature.add("@@");
-//            	}
-//            } else {
-//            	//first previous word counterpart -- 2
-//            	wordFeature.add("@@");
-//            	//SameAsPrevious counter part -- 3
-//            	wordFeature.add("@@");
-//            	//combination of first previous word and current word counterpart -- 4
-//            	wordFeature.add("@@");
-//            	//second previous word counterpart -- 5
-//        		wordFeature.add("@@");
-//        		//combination of second previous and first previous word counterpart -- 6
-//        		wordFeature.add("@@");
-//            }
-            
-//            if (i < words.size() - 1) {
-//                //first next word -- 7
-//            	String next1Word = words.get(i+1);
-//            	wordFeature.add(next1Word);
-//            	//combination of current word and first next word -- 8
-//            	String tmp = curWord + next1Word;
-//            	wordFeature.add(tmp);
-//            	if (i < words.size() - 2) {
-//            		//second next word -- 9
-//            		String next2Word = words.get(i+2);
-//            		wordFeature.add(next2Word);
-//            	}
-//            } else {
-//            	//first next word counterpart -- 7
-//            	wordFeature.add("@@");
-//            	//combination of current word and first next word counterpart -- 8
-//            	wordFeature.add("@@");
-//            	//second next word counterpart -- 9
-//            	wordFeature.add("@@");
-//            }
-//
-//            if (i > 0 && i < words.size() - 1) {
-//            	//jump, combination of first previous word and first next word -- 10
-//            	String tmp = words.get(i-1) + curWord + words.get(i+1);
-//            	wordFeature.add(tmp);
-//            } else {
-//            	//jump, combination of first previous word and first next word counterpart -- 10
-//            	wordFeature.add("@@");
-//            }
-
-
-//            if (fileType == FileType.TRAINING) {
-//            	//tag for current word if training file -- 11
-//                wordFeature.add(states.get(i));
-//            } else {
-//            	//tag for current word if training file counterpart -- 11
-//            	wordFeature.add("@@");
-//            }
-
             String preWord = "NULL";
             String nextWord = "NULL";
             String prepreWord = "NULL2";
             String nextnextWord = "NULL2";
 
             //first previous word -- 2
-            if (i > 0) {
-                preWord = words.get(i - 1);
-            }
-            wordFeature.add(preWord);
-
-            //first next word -- 3
-            if (i < words.size() - 1) {
-                nextWord = words.get(i + 1);
-            }
-            wordFeature.add(nextWord);
-
-            //combination of first previous word and current word -- 4
-            wordFeature.add(preWord + curWord);
+//            if (i > 0) {
+//                preWord = words.get(i - 1);
+//            }
+//            wordFeature.add(preWord);
+//
+//            //first next word -- 3
+//            if (i < words.size() - 1) {
+//                nextWord = words.get(i + 1);
+//            }
+//            wordFeature.add(nextWord);
+//
+//            //second previous word counterpart -- 4
+//            if (i > 1) {
+//                prepreWord = words.get(i - 2);
+//            }
+//            wordFeature.add(prepreWord);
+//
+//            //combination of first previous word and current word -- 5
+//            wordFeature.add(preWord + curWord);
+//
+//            //combination of current word and first next word counterpart -- 6
+//            wordFeature.add(curWord + nextWord);
+//
+//            // combination of first previous word and first next word -- 7
+//            wordFeature.add(preWord + nextWord);
+//
+//            // combination of second previous word and first previous word -- 8
+//            wordFeature.add(prepreWord + preWord);
+//
+//            // combination of second previous word and current word -- 9
+//            wordFeature.add(prepreWord + curWord);
 
             //current word is identical to first previous word -- 5
             if (curWord.equals(preWord)) {
@@ -211,23 +150,12 @@ public class FeatureBuilder {
                 wordFeature.add("AB");
             }
 
-            //second previous word counterpart -- 6
-            if (i > 1) {
-                prepreWord = words.get(i - 2);
-            }
-            wordFeature.add(prepreWord);
-
-            //combination of current word and first next word counterpart -- 7
-            wordFeature.add(curWord + nextWord);
 
             //second next word counterpart -- 8
-            if (i < words.size() - 2) {
-                nextnextWord = words.get(i + 2);
-            }
-            wordFeature.add(nextnextWord);
-
-            // combination of first previous word and first next word -- 9
-            wordFeature.add(preWord + nextWord);
+//            if (i < words.size() - 2) {
+//                nextnextWord = words.get(i + 2);
+//            }
+//            wordFeature.add(nextnextWord);
 
 
             //tag for current word if training file -- 10
