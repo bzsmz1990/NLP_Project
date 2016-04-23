@@ -1,0 +1,7 @@
+-d /Users/ChenChen/Documents/IntelliJ_Workspace/NLP_Project/data/pku_training_2_simple.tag
+-r /Users/ChenChen/Documents/IntelliJ_Workspace/NLP_Project/result
+-t train
+
+
+-f /Users/ChenChen/Documents/IntelliJ_Workspace/NLP_Project/result/result.txt
+-t 2
