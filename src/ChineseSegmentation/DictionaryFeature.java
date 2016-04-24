@@ -36,6 +36,8 @@ public class DictionaryFeature {
                 maxWord = Math.max(maxWord, token[0].length());
             }
             reader.close();
+            numberDict.add("○");
+            numberDict.add("零");
             numberDict.add("一");
             numberDict.add("二");
             numberDict.add("三");
@@ -46,7 +48,6 @@ public class DictionaryFeature {
             numberDict.add("八");
             numberDict.add("九");
             numberDict.add("十");
-            numberDict.add("零");
             numberDict.add("百");
             numberDict.add("千");
             numberDict.add("万");
@@ -56,10 +57,15 @@ public class DictionaryFeature {
         }
     }
 
-    public String[] analysis(String sentence, int type) {
+    public String[] analysis(List<String> list, int type) {
         if (type != 2 && type != 4 && type != 5) {
             throw new RuntimeException("Type must be 2, 4 or 5");
         }
+        StringBuilder builder = new StringBuilder();
+        for (String s: list) {
+            builder.append(s);
+        }
+        String sentence = builder.toString();
         List<String> result = new ArrayList<String>();
         int lastIndex = 0;
         for (int i = 0; i <= sentence.length(); i++) {
@@ -67,12 +73,17 @@ public class DictionaryFeature {
             if (i < sentence.length()) {
                 current = sentence.charAt(i);
             }
-            if (isHan(current) && !numberDict.contains(current)) {
+            if (isHan(current) && !numberDict.contains(current + "")) {
                 continue;
             }
             else if (lastIndex == i) {
                 if (i != sentence.length()) {
-                    result.add("NONWORD");
+                    if (!numberDict.contains(current + "") && isP(current + "")) {
+                        result.add("P");
+                    }
+                    else {
+                        result.add("NONWORD");
+                    }
                 }
                 lastIndex++;
             }
@@ -87,15 +98,19 @@ public class DictionaryFeature {
                     part = part.substring(1, part.length());
                     temp = find(part);
                 }
-                if (temp.isEmpty()) {
-                    continue;
-                }
-                List<String> first = temp.get(0);
-                for (String str: first) {
-                    result.add(str);
+                if (!temp.isEmpty()) {
+                    List<String> first = temp.get(0);
+                    for (String str: first) {
+                        result.add(str);
+                    }
                 }
                 if (i != sentence.length()) {
-                    result.add("NONWORD");
+                    if (!numberDict.contains(current + "") && isP(current + "")) {
+                        result.add("P");
+                    }
+                    else {
+                        result.add("NONWORD");
+                    }
                 }
                 lastIndex = i + 1;
             }
@@ -111,6 +126,16 @@ public class DictionaryFeature {
         else {
             return false;
         }
+    }
+
+    private boolean isP(String word) {
+        for (int i = 0; i < word.length(); i++) {
+            char current = word.charAt(i);
+            if (isHan(current) || Character.isLetterOrDigit(current)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private List<List<String>> find(String s) {
