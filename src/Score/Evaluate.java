@@ -49,10 +49,11 @@ public class Evaluate {
             while ((curLine = bufferedReader.readLine()) != null) {
                 lineCount++;
                 String[] temps = curLine.split("\\s+");
-                if (temps.length == 3) {
-                    testStates.add(temps[1]);
-                    goldStates.add(temps[2]);
+                if (temps.length >= 3) {
+                    testStates.add(temps[temps.length - 1]);
+                    goldStates.add(temps[temps.length - 2]);
                 }
+
             }
         } catch (Exception e) {
             e.printStackTrace();

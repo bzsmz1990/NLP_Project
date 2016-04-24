@@ -6,6 +6,10 @@ import java.io.*;
  * Created by ChenChen on 4/23/16.
  */
 public class TrainingParser2 {
+    public enum FileType {
+        TRAINING, DEVELOP, TESTING;
+    }
+
     public static void main(String[] args) {
         BufferedWriter writer_2 = null;
         BufferedWriter writer_4 = null;
@@ -13,7 +17,7 @@ public class TrainingParser2 {
 
         String dataPath = null;
         String resultPath = null;
-        boolean train = true;
+        FileType type = null;
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-d")) {
                 dataPath = args[i+1];
@@ -22,10 +26,15 @@ public class TrainingParser2 {
                 resultPath = args[i+1];
                 i++;
             } else if (args[i].equals("-t")) {
-                if (args[i+1].equals("train")) {
-                    train = true;
+                if (args[i+1].toLowerCase().equals("train")) {
+                    type = FileType.TRAINING;
+                } else if (args[i+1].toLowerCase().equals("develop")) {
+                    type = FileType.DEVELOP;
+                } else if (args[i+1].toLowerCase().equals("test")) {
+                    type = FileType.TESTING;
                 } else {
-                    train = false;
+                    System.out.println("Type can only be: train, develop or test");
+                    System.exit(1);
                 }
                 i++;
             }
@@ -33,10 +42,14 @@ public class TrainingParser2 {
 
         try {
             BufferedReader reader = new BufferedReader(new FileReader(dataPath));
-            if (train) {
+            if (type == FileType.TRAINING) {
                 writer_2 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_training_2_noP.tag"));
                 writer_4 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_training_4_noP.tag"));
                 writer_5 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_training_5_noP.tag"));
+            } else if (type == FileType.DEVELOP) {
+                writer_2 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_develop_2_noP.tag"));
+                writer_4 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_develop_4_noP.tag"));
+                writer_5 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_develop_5_noP.tag"));
             } else {
                 writer_2 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_testing_2_noP.tag"));
                 writer_4 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_testing_4_noP.tag"));

@@ -2,6 +2,7 @@ package ChineseSegmentation;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Filter;
 
@@ -10,12 +11,16 @@ import java.util.logging.Filter;
  */
 public class FeatureBuilder {
     public enum FileType {
-        TRAINING, TESTING;
+        TRAINING, DEVELOP, TESTING;
     }
 
     private String      dataPath;
     private String      resultPath;
     private FileType    fileType;
+
+    private static final List<Character> chineseNumber = Arrays.asList('零', '一', '二', '三', '四', '五',
+            '六', '七', '八', '九', '十');
+    private static final List<Character> chineseDates = Arrays.asList('年', '月', '日');
 
     FeatureBuilder(String dp, String rp, FileType ft) {
         dataPath = dp;
@@ -24,8 +29,8 @@ public class FeatureBuilder {
 
         if (fileType == FileType.TRAINING) {
             resultPath += File.separator + "trainingFeatures";
-        } else if (fileType == FileType.TESTING){
-            resultPath += File.separator + "testingFeatures";
+        } else if (fileType == FileType.DEVELOP){
+            resultPath += File.separator + "developFeatures";
         }
     }
 
@@ -60,21 +65,12 @@ public class FeatureBuilder {
                 } else {
                     String[] pair = curline.split("\\s+");
                     words.add(pair[0]);
-                    if (fileType == FileType.TRAINING) {
+                    if (fileType == FileType.TRAINING || fileType == FileType.DEVELOP) {
                         states.add(pair[1]);
                     }
                 }
                 lineCount++;
             }
-
-//            if (!words.isEmpty()) {
-//                List<List<String>> features = GenerateFeature(words, states);
-//                if (!words.isEmpty()) {
-//                    sentence++;
-//                }
-//                StoreFeaturesFile(features, bufferedWriter);
-//                ClearList(words, states);
-//            }
 
             bufferedWriter.close();
             write.close();
@@ -111,22 +107,27 @@ public class FeatureBuilder {
             String nextnextWord = "NULL2";
 
             //first previous word -- 2
-//            if (i > 0) {
-//                preWord = words.get(i - 1);
-//            }
+            if (i > 0) {
+                preWord = words.get(i - 1);
+            }
 //            wordFeature.add(preWord);
 //
 //            //first next word -- 3
-//            if (i < words.size() - 1) {
-//                nextWord = words.get(i + 1);
-//            }
+            if (i < words.size() - 1) {
+                nextWord = words.get(i + 1);
+            }
 //            wordFeature.add(nextWord);
 //
 //            //second previous word counterpart -- 4
-//            if (i > 1) {
-//                prepreWord = words.get(i - 2);
-//            }
+            if (i > 1) {
+                prepreWord = words.get(i - 2);
+            }
 //            wordFeature.add(prepreWord);
+
+            // second next word
+            if (i < words.size() - 2) {
+                nextnextWord = words.get(i + 2);
+            }
 //
 //            //combination of first previous word and current word -- 5
 //            wordFeature.add(preWord + curWord);
@@ -143,23 +144,33 @@ public class FeatureBuilder {
 //            // combination of second previous word and current word -- 9
 //            wordFeature.add(prepreWord + curWord);
 
-            //current word is identical to first previous word -- 5
+            //current word is identical to first previous word -- 10
             if (curWord.equals(preWord)) {
                 wordFeature.add("AA");
             } else {
                 wordFeature.add("AB");
             }
 
-
-            //second next word counterpart -- 8
-//            if (i < words.size() - 2) {
-//                nextnextWord = words.get(i + 2);
+            // whether it is punctuation    -- 11
+//            if (IsPunctuation(curWord)) {
+//                wordFeature.add("1");
+//            } else {
+//                wordFeature.add("0");
 //            }
-//            wordFeature.add(nextnextWord);
+
+            // 5 chars window format
+            List<String> window = new ArrayList<String>();
+            window.add(prepreWord);
+            window.add(preWord);
+            window.add(curWord);
+            window.add(nextWord);
+            window.add(nextnextWord);
+            String format = GetFormate(window);
+            wordFeature.add(format);
 
 
-            //tag for current word if training file -- 10
-            if (fileType == FileType.TRAINING) {
+            //status for current word
+            if (fileType == FileType.TRAINING || fileType == FileType.DEVELOP) {
                 wordFeature.add(states.get(i));
             }
 
@@ -196,9 +207,47 @@ public class FeatureBuilder {
 
     private void ClearList(List<String> words, List<String> states) {
         words.clear();
-        if (fileType == FileType.TRAINING) {
+        if (fileType == FileType.TRAINING || fileType == FileType.DEVELOP) {
             states.clear();
         }
+    }
+
+    private boolean IsPunctuation(String word) {
+        for (int i = 0; i < word.length(); i++) {
+            char current = word.charAt(i);
+            if (IsHan(current) || Character.isLetterOrDigit(current)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean IsHan(char current) {
+        if (Character.UnicodeScript.of(current) == Character.UnicodeScript.HAN) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public String GetFormate(List<String> input) {
+        String outPut = "";
+        for (String word: input) {
+            if (word.equals("null2") || word.equals("null")) {
+                outPut += "0";
+            } else if (chineseNumber.contains(word.charAt(0))) {
+                outPut += "1";
+            } else if (chineseDates.contains(word.charAt(0))){
+                outPut += "2";
+            } else if ((word.charAt(0) >= 65 && word.charAt(0) <= 90) ||
+                    (word.charAt(0) >= 97 && word.charAt(0) <= 122)) {
+                outPut += "3";
+            } else {
+                outPut += "4";
+            }
+        }
+        return outPut;
     }
 
     public static void main(String[] args) {
@@ -217,9 +266,15 @@ public class FeatureBuilder {
             } else if ("-t".equals(args[i])) {
                 if ("train".equals(args[i + 1])) {
                     fileType = FileType.TRAINING;
+                } else if ("develop".equals(args[i+1])) {
+                    fileType = FileType.DEVELOP;
+                } else if ("test".equals(args[i+1])) {
+                    fileType = fileType.TESTING;
                 } else {
-                    fileType = FileType.TESTING;
+                    System.out.println("Type can only be: train, develop or test");
+                    System.exit(1);
                 }
+                i++;
             }
         }
 
