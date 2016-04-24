@@ -50,7 +50,7 @@ public class DictionaryFeature {
         }
     }
 
-    public String[][] analysis(String sentence, int type) {
+    public String[] analysis(String sentence, int type) {
         if (type != 2 && type != 4 && type != 5) {
             throw new RuntimeException("Type must be 2, 4 or 5");
         }
@@ -94,7 +94,7 @@ public class DictionaryFeature {
                 lastIndex = i + 1;
             }
         }
-        String[][] tag = toTag(result, type);
+        String[] tag = toTag(result, type);
         return tag;
     }
 
@@ -138,7 +138,7 @@ public class DictionaryFeature {
         }
     }
 
-    private String[][] toTag(List<String> result, int type) {
+    private String[] toTag(List<String> result, int type) {
         List<String> removeFail = new ArrayList<String>();
         int index = 0;
         while (index < result.size()) {
@@ -201,10 +201,9 @@ public class DictionaryFeature {
                 }
             }
         }
-        String[][] array = new String[character.size()][2];
+        String[] array = new String[character.size()];
         for (int i = 0; i < character.size(); i++) {
-            array[i][0] = character.get(i);
-            array[i][1] = tags.get(i);
+            array[i] = tags.get(i);
         }
         return array;
     }
