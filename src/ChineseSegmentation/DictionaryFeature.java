@@ -13,6 +13,8 @@ import java.util.HashSet;
 public class DictionaryFeature {
     private HashSet<String> dict = new HashSet<String>();
 
+    private HashSet<String> numberDict = new HashSet<String>();
+
     private static DictionaryFeature instance = new DictionaryFeature();
 
     private DictionaryFeature() {}
@@ -34,17 +36,21 @@ public class DictionaryFeature {
                 maxWord = Math.max(maxWord, token[0].length());
             }
             reader.close();
-            dict.add("一");
-            dict.add("二");
-            dict.add("三");
-            dict.add("四");
-            dict.add("五");
-            dict.add("六");
-            dict.add("七");
-            dict.add("八");
-            dict.add("九");
-            dict.add("十");
-            dict.add("零");
+            numberDict.add("一");
+            numberDict.add("二");
+            numberDict.add("三");
+            numberDict.add("四");
+            numberDict.add("五");
+            numberDict.add("六");
+            numberDict.add("七");
+            numberDict.add("八");
+            numberDict.add("九");
+            numberDict.add("十");
+            numberDict.add("零");
+            numberDict.add("百");
+            numberDict.add("千");
+            numberDict.add("万");
+            numberDict.add("亿");
         } catch (IOException e) {
             throw new RuntimeException("Read map not successful");
         }
@@ -61,12 +67,12 @@ public class DictionaryFeature {
             if (i < sentence.length()) {
                 current = sentence.charAt(i);
             }
-            if (isHan(current)) {
+            if (isHan(current) && !numberDict.contains(current)) {
                 continue;
             }
             else if (lastIndex == i) {
                 if (i != sentence.length()) {
-                    result.add(current + "");
+                    result.add("NONWORD");
                 }
                 lastIndex++;
             }
@@ -89,7 +95,7 @@ public class DictionaryFeature {
                     result.add(str);
                 }
                 if (i != sentence.length()) {
-                    result.add(current + "");
+                    result.add("NONWORD");
                 }
                 lastIndex = i + 1;
             }
@@ -143,11 +149,7 @@ public class DictionaryFeature {
         int index = 0;
         while (index < result.size()) {
             String current = result.get(index);
-            if (!current.equals("FAIL")) {
-                removeFail.add(current);
-                index++;
-            }
-            else {
+            if (current.equals("FAIL")) {
                 String placeHolder = "?";
                 index++;
                 while (index < result.size() && result.get(index).equals("FAIL")) {
@@ -155,6 +157,19 @@ public class DictionaryFeature {
                     index++;
                 }
                 removeFail.add(placeHolder);
+            }
+            else if (current.equals("NONWORD")) {
+                String placeHolder = "0";
+                index++;
+                while (index < result.size() && result.get(index).equals("NONWORD")) {
+                    placeHolder += "0";
+                    index++;
+                }
+                removeFail.add(placeHolder);
+            }
+            else {
+                removeFail.add(current);
+                index++;
             }
         }
         result = removeFail;

@@ -10,7 +10,7 @@ public class TestForDictionary {
                 "１２月３１日，中共中央总书记、国家主席江泽民发表１９９８年新年讲话" +
                 "《迈向充满希望的新世纪》。（新华社记者兰红光摄）";
 
-        DictionaryFeature dict = DictionaryFeature.getInstance();
+        DictionaryFeature dict = DictionaryFeature.getInstance(); // use CoreNatureDictionary.txt
         dict.readDict(mapPath);
         String[] result = dict.analysis(sentence, 2); // can be 2, 4 or 5 (the number of tags)
 
