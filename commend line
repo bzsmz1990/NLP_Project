@@ -1,4 +1,4 @@
--d /Users/ChenChen/Documents/IntelliJ_Workspace/NLP_Project/data/pku_training_2_simple.tag
+-d /Users/ChenChen/Documents/IntelliJ_Workspace/NLP_Project/data/pku_training_4.tag
 -r /Users/ChenChen/Documents/IntelliJ_Workspace/NLP_Project/result
 -t train
 
