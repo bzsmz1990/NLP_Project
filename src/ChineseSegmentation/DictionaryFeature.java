@@ -67,7 +67,6 @@ public class DictionaryFeature {
         }
         String sentence = builder.toString();
         List<String> result = new ArrayList<String>();
-        int lastIndex = 0;
         for (int i = 0; i <= sentence.length(); i++) {
             char current = '-';
             if (i < sentence.length()) {
@@ -76,47 +75,48 @@ public class DictionaryFeature {
             if (isHan(current) && !numberDict.contains(current + "")) {
                 continue;
             }
-            else if (lastIndex == i) {
-                if (i != sentence.length()) {
-                    if (!numberDict.contains(current + "") && isP(current + "")) {
-                        result.add("P");
+            else if (numberDict.contains(current + "")) {
+                if (i + 1 < sentence.length() && numberDict.contains(sentence.charAt(i + 1) + "")) {
+                    int lastPos = getLastPos(result);
+                    process(result, sentence, lastPos, i - 1);
+                    String placeHolder = current + "";
+                    while (i + 1 < sentence.length() && numberDict.contains(sentence.charAt(i + 1) + "")) {
+                        placeHolder += sentence.charAt(i + 1);
+                        i++;
                     }
-                    else {
-                        result.add("NONWORD");
-                    }
+                    result.add(placeHolder);
                 }
-                lastIndex++;
+            }
+            else if (isP(current)) {
+                int lastPos = getLastPos(result);
+                process(result, sentence, lastPos, i - 1);
+                result.add(current + "");
             }
             else {
-                String part = sentence.substring(lastIndex, i);
-                List<List<String>> temp = find(part);
-                while (temp.isEmpty()) {
-                    result.add("FAIL");
-                    if (part.length() == 1) {
-                        break;
-                    }
-                    part = part.substring(1, part.length());
-                    temp = find(part);
+                int lastPos = getLastPos(result);
+                process(result, sentence, lastPos, i - 1);
+                String placeHolder = current + "";
+                while (i + 1 < sentence.length() && isOther(sentence.charAt(i + 1))) {
+                    placeHolder += sentence.charAt(i + 1);
+                    i++;
                 }
-                if (!temp.isEmpty()) {
-                    List<String> first = temp.get(0);
-                    for (String str: first) {
-                        result.add(str);
-                    }
-                }
-                if (i != sentence.length()) {
-                    if (!numberDict.contains(current + "") && isP(current + "")) {
-                        result.add("P");
-                    }
-                    else {
-                        result.add("NONWORD");
-                    }
-                }
-                lastIndex = i + 1;
+                result.add(placeHolder);
             }
         }
         String[] tag = toTag(result, type);
         return tag;
+    }
+
+    private void process(List<String> result, String sentence, int lastPos, int currentPos) {
+        List<String> temp = find(sentence, lastPos, currentPos);
+        for (String str: temp) {
+            if (str.equals("F") && result.size() > 0 && result.get(result.size() - 1).matches("F+")) {
+                result.set(result.size() - 1, result.get(result.size() - 1) + "F");
+            }
+            else {
+                result.add(str);
+            }
+        }
     }
 
     private boolean isHan(char current) {
@@ -128,76 +128,119 @@ public class DictionaryFeature {
         }
     }
 
-    private boolean isP(String word) {
-        for (int i = 0; i < word.length(); i++) {
-            char current = word.charAt(i);
-            if (isHan(current) || Character.isLetterOrDigit(current)) {
-                return false;
-            }
+    private boolean isP(char current) {
+        if (isHan(current) || Character.isLetterOrDigit(current)) {
+            return false;
         }
-        return true;
+        else {
+            return true;
+        }
     }
 
-    private List<List<String>> find(String s) {
-        List<List<String>> result = new ArrayList<List<String>>();
-        helper(result, new ArrayList<String>(), s, 0);
+    private boolean isOther(char current) {
+        if (isHan(current) || isP(current) || numberDict.contains(current + "")) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    private int getLastPos(List<String> result) {
+        int count = 0;
+        for (String s: result) {
+            count += s.length();
+        }
+        return count;
+    }
+
+    private List<String> find(String s, int i, int j) {
+        List<String> result = new ArrayList<String>();
+        j = Math.min(j, s.length() - 1);
+        if (i >= j) {
+            return result;
+        }
+        int index = i;
+        while (index <= j) {
+            int startIndex = index;
+            for (int length = maxWord; length >= 1; length--) {
+                int end = index + length - 1;
+                if (end > j) {
+                    continue;
+                }
+                String token = s.substring(index, end + 1);
+                if (!dict.contains(token) && !numberDict.contains(token)) {
+                    continue;
+                }
+                else {
+                    result.add(token);
+                    index = end + 1;
+                    break;
+                }
+            }
+            if (index == startIndex) {
+                //result.add(s.substring(index, index + 1));
+                result.add("F");
+                index++;
+            }
+        }
         return result;
     }
 
-    private boolean helper(List<List<String>> result, List<String> current, String s, int pos) {
-        if (pos == s.length()) {
-            result.add(current);
-            return true;
-        }
-        else {
-            for (int length = maxWord; length >= 1; length--) {
-                int end = pos + length - 1;
-                if (end >= s.length()) {
-                    continue;
-                }
-                String token = s.substring(pos, end + 1);
-                if (!dict.contains(token)) {
-                    continue;
-                }
-                current.add(token);
-                if (helper(result, current, s, end + 1)) {
-                    return true;
-                }
-                current.remove(current.size() - 1);
-            }
-            return false;
-        }
-    }
+//    private boolean helper(List<List<String>> result, List<String> current, String s, int pos) {
+//        if (pos == s.length()) {
+//            result.add(current);
+//            return true;
+//        }
+//        else {
+//            for (int length = maxWord; length >= 1; length--) {
+//                int end = pos + length - 1;
+//                if (end >= s.length()) {
+//                    continue;
+//                }
+//                String token = s.substring(pos, end + 1);
+//                if (!dict.contains(token) && !numberDict.contains(token)) {
+//                    continue;
+//                }
+//                current.add(token);
+//                if (helper(result, current, s, end + 1)) {
+//                    return true;
+//                }
+//                current.remove(current.size() - 1);
+//            }
+//            return false;
+//        }
+//    }
 
     private String[] toTag(List<String> result, int type) {
-        List<String> removeFail = new ArrayList<String>();
-        int index = 0;
-        while (index < result.size()) {
-            String current = result.get(index);
-            if (current.equals("FAIL")) {
-                String placeHolder = "?";
-                index++;
-                while (index < result.size() && result.get(index).equals("FAIL")) {
-                    placeHolder += "?";
-                    index++;
-                }
-                removeFail.add(placeHolder);
-            }
-            else if (current.equals("NONWORD")) {
-                String placeHolder = "0";
-                index++;
-                while (index < result.size() && result.get(index).equals("NONWORD")) {
-                    placeHolder += "0";
-                    index++;
-                }
-                removeFail.add(placeHolder);
-            }
-            else {
-                removeFail.add(current);
-                index++;
-            }
-        }
-        result = removeFail;
+//        List<String> removeFail = new ArrayList<String>();
+//        int index = 0;
+//        while (index < result.size()) {
+//            String current = result.get(index);
+//            if (current.equals("FAIL")) {
+//                String placeHolder = "?";
+//                index++;
+//                while (index < result.size() && result.get(index).equals("FAIL")) {
+//                    placeHolder += "?";
+//                    index++;
+//                }
+//                removeFail.add(placeHolder);
+//            }
+//            else if (current.equals("NONWORD")) {
+//                String placeHolder = "0";
+//                index++;
+//                while (index < result.size() && result.get(index).equals("NONWORD")) {
+//                    placeHolder += "0";
+//                    index++;
+//                }
+//                removeFail.add(placeHolder);
+//            }
+//            else {
+//                removeFail.add(current);
+//                index++;
+//            }
+//        }
+//        result = removeFail;
         List<String> character = new ArrayList<String>();
         List<String> tags = new ArrayList<String>();
         for (int i = 0; i < result.size(); i++) {

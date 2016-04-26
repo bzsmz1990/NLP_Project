@@ -43,17 +43,17 @@ public class TrainingParser2 {
         try {
             BufferedReader reader = new BufferedReader(new FileReader(dataPath));
             if (type == FileType.TRAINING) {
-                writer_2 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_training_2_noP.tag"));
-                writer_4 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_training_4_noP.tag"));
-                writer_5 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_training_5_noP.tag"));
+                writer_2 = new BufferedWriter(new FileWriter(resultPath + File.separator + "training_2_noP.tag"));
+                writer_4 = new BufferedWriter(new FileWriter(resultPath + File.separator + "training_4_noP.tag"));
+                writer_5 = new BufferedWriter(new FileWriter(resultPath + File.separator + "training_5_noP.tag"));
             } else if (type == FileType.DEVELOP) {
-                writer_2 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_develop_2_noP.tag"));
-                writer_4 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_develop_4_noP.tag"));
-                writer_5 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_develop_5_noP.tag"));
+                writer_2 = new BufferedWriter(new FileWriter(resultPath + File.separator + "develop_2_noP.tag"));
+                writer_4 = new BufferedWriter(new FileWriter(resultPath + File.separator + "develop_4_noP.tag"));
+                writer_5 = new BufferedWriter(new FileWriter(resultPath + File.separator + "develop_5_noP.tag"));
             } else {
-                writer_2 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_testing_2_noP.tag"));
-                writer_4 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_testing_4_noP.tag"));
-                writer_5 = new BufferedWriter(new FileWriter(resultPath + File.separator + "pku_testing_5_noP.tag"));
+                writer_2 = new BufferedWriter(new FileWriter(resultPath + File.separator + "testing_2_noP.tag"));
+                writer_4 = new BufferedWriter(new FileWriter(resultPath + File.separator + "testing_4_noP.tag"));
+                writer_5 = new BufferedWriter(new FileWriter(resultPath + File.separator + "testing_5_noP.tag"));
             }
 
             String line = null;
