@@ -70,10 +70,10 @@ public class FeatureBuilder {
                     }
                     StoreFeaturesFile(features, bufferedWriter);
                     ClearList(words, states);
-                    if (words.isEmpty()) {
-                        System.out.println("Sentence: " + sentence);
-                        System.out.println("Line: " + (lineCount+1) + "\n");
-                    }
+//                    if (words.isEmpty()) {
+//                        System.out.println("Sentence: " + sentence);
+//                        System.out.println("Line: " + (lineCount+1) + "\n");
+//                    }
                 } else {
                     String[] pair = curline.split("\\s+");
                     words.add(pair[0]);
@@ -123,59 +123,32 @@ public class FeatureBuilder {
             String prepreWord = "NULL2";
             String nextnextWord = "NULL2";
 
-            //first previous word -- 2
+            //first previous word
             if (i > 0) {
                 preWord = words.get(i - 1);
             }
-//            wordFeature.add(preWord);
-//
-//            //first next word -- 3
+
             if (i < words.size() - 1) {
                 nextWord = words.get(i + 1);
             }
-//            wordFeature.add(nextWord);
-//
-//            //second previous word counterpart -- 4
+
             if (i > 1) {
                 prepreWord = words.get(i - 2);
             }
-//            wordFeature.add(prepreWord);
 
             // second next word
             if (i < words.size() - 2) {
                 nextnextWord = words.get(i + 2);
             }
-//
-//            //combination of first previous word and current word -- 5
-//            wordFeature.add(preWord + curWord);
-//
-//            //combination of current word and first next word counterpart -- 6
-//            wordFeature.add(curWord + nextWord);
-//
-//            // combination of first previous word and first next word -- 7
-//            wordFeature.add(preWord + nextWord);
-//
-//            // combination of second previous word and first previous word -- 8
-//            wordFeature.add(prepreWord + preWord);
-//
-//            // combination of second previous word and current word -- 9
-//            wordFeature.add(prepreWord + curWord);
 
-            //current word is identical to first previous word -- 10
+            //current word is identical to first previous word  -- 2
             if (curWord.equals(preWord)) {
                 wordFeature.add("AA");
             } else {
                 wordFeature.add("AB");
             }
 
-            // whether it is punctuation    -- 11
-//            if (IsPunctuation(curWord)) {
-//                wordFeature.add("1");
-//            } else {
-//                wordFeature.add("0");
-//            }
-
-            // 5 chars window format
+            // 5 chars window format    -- 3
             List<String> window = new ArrayList<String>();
             window.add(prepreWord);
             window.add(preWord);
@@ -185,11 +158,11 @@ public class FeatureBuilder {
             String format = GetFormate(window);
             wordFeature.add(format);
 
-            // predict status
+            // predict status   -- 4
             wordFeature.add(predict[i]);
 
 
-            //status for current word
+            //status for current word   -- 5
             if (fileType == FileType.TRAINING || fileType == FileType.DEVELOP) {
                 wordFeature.add(states.get(i));
             }
