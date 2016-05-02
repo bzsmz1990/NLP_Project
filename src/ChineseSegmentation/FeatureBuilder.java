@@ -14,30 +14,38 @@ public class FeatureBuilder {
         TRAINING, DEVELOP, TESTING;
     }
 
-    private String      dataPath;
-    private String      resultPath;
-    private FileType    fileType;
+    private String              dataPath;
+    private String              resultPath;
+    private FileType            fileType;
+    private String              dicPath;
+    private int                 statusType;
+    private DictionaryFeature   dict;
 
     private static final List<Character> chineseNumber = Arrays.asList('零', '一', '二', '三', '四', '五',
             '六', '七', '八', '九', '十');
     private static final List<Character> chineseDates = Arrays.asList('年', '月', '日');
 
-    FeatureBuilder(String dp, String rp, FileType ft) {
-        dataPath = dp;
-        resultPath = rp;
-        fileType = ft;
+    FeatureBuilder(String dp, String rp, FileType ft, String dicp, int st) {
+        dataPath    = dp;
+        resultPath  = rp;
+        fileType    = ft;
+        dicPath     = dicp;
+        statusType  = st;
 
         if (fileType == FileType.TRAINING) {
             resultPath += File.separator + "trainingFeatures";
         } else if (fileType == FileType.DEVELOP){
             resultPath += File.separator + "developFeatures";
         }
+
+        dict = DictionaryFeature.getInstance();
+        dict.readDict(dicPath);
     }
 
 
     private void Process() {
         int sentence = 0;
-        int lineCount = 1;
+        int lineCount = 0;
         String curline = "";
         List<String> words = new ArrayList<String>();
         List<String> states = new ArrayList<String>();
@@ -62,6 +70,10 @@ public class FeatureBuilder {
                     }
                     StoreFeaturesFile(features, bufferedWriter);
                     ClearList(words, states);
+                    if (words.isEmpty()) {
+                        System.out.println("Sentence: " + sentence);
+                        System.out.println("Line: " + (lineCount+1) + "\n");
+                    }
                 } else {
                     String[] pair = curline.split("\\s+");
                     words.add(pair[0]);
@@ -95,6 +107,11 @@ public class FeatureBuilder {
      */
     private List<List<String>> GenerateFeature(List<String> words, List<String> states) {
         List<List<String>> features = new ArrayList<List<String>>();
+
+        String[] predict = dict.analysis(words, statusType);     // feature -- predict status
+        if (predict.length == 0) {
+            return features;
+        }
         for (int i = 0; i < words.size(); i++) {
             List<String> wordFeature = new ArrayList<String>();
             //current word -- 1
@@ -168,6 +185,9 @@ public class FeatureBuilder {
             String format = GetFormate(window);
             wordFeature.add(format);
 
+            // predict status
+            wordFeature.add(predict[i]);
+
 
             //status for current word
             if (fileType == FileType.TRAINING || fileType == FileType.DEVELOP) {
@@ -234,7 +254,7 @@ public class FeatureBuilder {
     public String GetFormate(List<String> input) {
         String outPut = "";
         for (String word: input) {
-            if (word.equals("null2") || word.equals("null")) {
+            if (word.equals("NULL2") || word.equals("NULL")) {
                 outPut += "0";
             } else if (chineseNumber.contains(word.charAt(0))) {
                 outPut += "1";
@@ -251,9 +271,11 @@ public class FeatureBuilder {
     }
 
     public static void main(String[] args) {
-        String      dataPath = "";
-        String      resultPath = "";
-        FileType    fileType = null;
+        String dataPath     = "";
+        String resultPath   = "";
+        String dicPath      = "";
+        FileType fileType   = null;
+        int statusType      = 2;
 
         // command line parameters analysis
         for (int i = 0; i < args.length; i++) {
@@ -275,10 +297,16 @@ public class FeatureBuilder {
                     System.exit(1);
                 }
                 i++;
+            } else if ("-dic".equals(args[i])) {
+                dicPath = args[i+1];
+                i++;
+            } else if ("-st".equals(args[i])) {
+                statusType = Integer.parseInt(args[i+1]);
+                i++;
             }
         }
 
-        FeatureBuilder fb = new FeatureBuilder(dataPath, resultPath, fileType);
+        FeatureBuilder fb = new FeatureBuilder(dataPath, resultPath, fileType, dicPath, statusType);
         fb.Process();
     }
 
