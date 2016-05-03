@@ -1,33 +1,30 @@
 package HMMPOSTagger;
 
+import java.io.*;
 import java.util.Scanner;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.FileNotFoundException;
 import java.lang.String;
 
 /**
  * Created by Wenzhao on 5/2/16.
  */
 
-
 public class Tagger  {
-
     private static HashMap<Integer, Integer> transition;
     private static HashMap<Integer, HashMap<String, Integer>> emit;
     private static HashMap<Integer, String> intToTag;
     private static HashMap<String, Integer> tagToInt;
+    private static HashMap<String, String> dict;
     private static int total;
-    private static double[] lambda;
+    private static double[] lambda = new double[3];;
 
     public static void main(String[] args) {
-        if (args.length != 2) {
-            System.err.println("Tagger takes 2 arguments:  java Tagger training_path testing_path");
+        if (args.length != 5) {
+            System.err.println("Tagger takes 5 arguments:  java Tagger training_path testing_path result_path"
+                               + "dict_path mapping_path");
             System.exit(1);
         }
         transition = new HashMap<Integer, Integer>();
@@ -35,7 +32,8 @@ public class Tagger  {
         intToTag = new HashMap<Integer, String>();
         tagToInt = new HashMap<String, Integer>();
         training(args[0]);
-        testing(args[1]);
+        loadInDict(args[3], args[4]);
+        testing(args[1], args[2]);
     }
 
     private static void training(String path) {
@@ -69,6 +67,7 @@ public class Tagger  {
             }
             else {
                 total++;
+                //System.out.println(s);
                 String[] tokens = s.split("\\s+");
                 if (tokens.length != 2) {
                     System.err.println ("format error!");
@@ -161,8 +160,14 @@ public class Tagger  {
             }
         }
         sc.close();
-        //calculate the lambdas
-        lambda = new double[3];
+        //calculateLamda();
+        //assign the values determined by validation
+        lambda[0] = 0.1;
+        lambda[1] = 0.1;
+        lambda[2] = 0.8;
+    }
+
+    private static void calculateLamda() {
         for (Map.Entry<Integer, Integer> entry : transition.entrySet()) {
             int t1t2t3 = entry.getKey();
             if (t1t2t3 < 10000) {
@@ -200,13 +205,38 @@ public class Tagger  {
         lambda[0] = lambda[0] / sum;
         lambda[1] = lambda[1] / sum;
         lambda[2] = lambda[2] / sum;
-        //assign the values determined by validation
-        lambda[0] = 0.15;
-        lambda[1] = 0.05;
-        lambda[2] = 0.8;
     }
 
-    private static void testing(String path) {
+    private static void loadInDict(String dictPath, String mappingPath) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(mappingPath));
+            HashMap<String, String> mapping = new HashMap<String, String>();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                if (line.length() == 0) {
+                    continue;
+                }
+                String[] data = line.split("\\s+");
+                mapping.put(data[0], data[1]);
+            }
+            reader = new BufferedReader(new FileReader(dictPath));
+            dict = new HashMap<String, String>();
+            line = null;
+            while ((line = reader.readLine()) != null) {
+                if (line.length() == 0) {
+                    continue;
+                }
+                String[] data = line.split("\\s+");
+                if (mapping.containsKey(data[1])) {
+                    dict.put(data[0], mapping.get(data[1]));
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("loadInMap " + e);
+        }
+    }
+
+    private static void testing(String path, String targetPath) {
         Scanner sc = new Scanner(System.in);
         try {
             sc = new Scanner(new FileReader(path));
@@ -215,7 +245,7 @@ public class Tagger  {
             System.exit(1);
         }
         System.out.println("Testing...");
-        File file = new File("results.pos");
+        File file = new File(targetPath);
         FileWriter writer = null;
         try {
             file.createNewFile();
@@ -228,7 +258,8 @@ public class Tagger  {
         int tagCount = intToTag.size();
         List<String> sentence = new ArrayList<String>();
         while (sc.hasNextLine()) {
-            String word = sc.nextLine();
+            String[] data = sc.nextLine().split("\\s+");
+            String word = data[0];
             if (word.length() != 0) {
                 sentence.add(word);
             }
@@ -420,96 +451,14 @@ public class Tagger  {
     }
 
     private static String unknownWord(String current) {
-        int pos = 0;
-        while (pos < current.length()) {
-            if ((current.charAt(pos) >= 'A' && current.charAt(pos) <= 'Z') ||
-                    (current.charAt(pos) >= 'a' && current.charAt(pos) <= 'z')) {
-                break;
-            }
-            pos++;
+        String tag = null;
+        if (dict.containsKey(current)) {
+            tag = dict.get(current);
         }
-        //if it's a pure number
-        if (pos == current.length()) {
-            return "CD";
-        }
-        //if it contains hyphen but the training set does not contain hyphen
-        else if (current.contains("-")) {
-            return "JJ";
-        }
-        //if the first letter is capitalized, and end with 's'
-        else if (current.charAt(0) >= 'A' && current.charAt(0) <= 'Z' && current.endsWith("s")) {
-            return "NNPS";
-        }
-        else if (current.charAt(0) >= 'A' && current.charAt(0) <= 'Z') {
-            return "NNP";
-        }
-        else if ((current.startsWith("non") || current.startsWith("ex")) && current.endsWith("s")) {
-            return "NNS";
-        }
-        else if (current.startsWith("non") || current.endsWith("ion") || current.endsWith("ess")
-                || current.endsWith("ty") || current.endsWith("ent") || current.endsWith("ization")
-                || current.endsWith("ship") || current.endsWith("ant") || current.endsWith("nce")
-                || current.endsWith("ncy") || current.endsWith("rium") || current.endsWith("ry")
-                || current.endsWith("dom") || current.endsWith("ism") || current.endsWith("ist")
-                || current.endsWith("ee") || current.endsWith("ectomy") || current.endsWith("esque")
-                || current.endsWith("hood") || current.endsWith("phobia") || current.startsWith("ex")) {
-            return "NN";
-        }
-        else if (current.endsWith("able") || current.endsWith("ible") || current.endsWith("ful")
-                || current.endsWith("al") || current.endsWith("ous") || current.endsWith("ic")
-                || current.endsWith("ive") || current.endsWith("less") || current.endsWith("ish")
-                || current.endsWith("like") || current.endsWith("ern") || current.endsWith("most")
-                || current.endsWith("some") || current.endsWith("ulent")) {
-            return "JJ";
-        }
-        else if (current.endsWith("ly") || current.endsWith("ward") || current.endsWith("wise")) {
-            return "RB";
-        }
-        else if (current.endsWith("est")) {
-            return "JJS";
-        }
-        else if (current.endsWith("ed")) {
-            return "VBD";
-        }
-        else if (current.endsWith("s")) {
-            return "NNS";
-        }
-//		else if (current.endsWith("s")) {
-//			String removed = current.substring(0, current.length() - 1);
-//			if (removed.endsWith("e")) {
-//				removed = removed.substring(0, removed.length() - 1);
-//			}
-//			int vbIndex = tagToInt.get("VB");
-//			HashMap<String, Integer> wordMap = emit.get(vbIndex);
-//			if (wordMap.containsKey(removed)) {
-//				return "VBZ";
-//			}
-//			else {
-//				return "NNS";
-//			}
-//		}
-//		else if (current.endsWith("er")) {
-//			//emitProb.put(tagToInt.get("NNS"), 0.001);
-//			String removed = current.substring(0, current.length() - 2);
-//			int vbIndex = tagToInt.get("JJ");
-//			HashMap<String, Integer> wordMap = emit.get(vbIndex);
-//			if (wordMap.containsKey(removed)) {
-//				return "JJR";
-//			}
-//			else {
-//				return "NN";
-//			}
-//		}
-        else if (current.endsWith("ing")) {
-            return "VBG";
-        }
-        else if (current.startsWith("re")) {
-            return "VB";
-        }
-        //the default type is noun
         else {
-            return "NN";
+            tag = "NR";
         }
+        return tag;
     }
 }
 
