@@ -1,5 +1,6 @@
 package ChineseParse;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -11,6 +12,12 @@ public class CFGNode {
     // A is grammer left part
     // B is grammer right part
 
-    private String name;    // grammer left part
-    private Map<String, Integer> childern;  // grammer right part -> count
+    public String name;    // grammer left part
+    public Map<String, Integer> childern;  // grammer right part -> count
+
+    public CFGNode(String n) {
+        name = n;
+        childern = new HashMap<String, Integer>();
+    }
+
 }

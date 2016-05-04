@@ -6,8 +6,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,10 +20,12 @@ public class TrainCorpus {
 
     private String dataFolder;
     private Map<String, CFGNode> cfgs;
+    private Set<String> terminals;
 
     public TrainCorpus(String df) {
         dataFolder = df;
         cfgs = new HashMap<String, CFGNode>();
+        terminals = new HashSet<String>();
     }
 
     public void Training() {
@@ -121,10 +122,115 @@ public class TrainCorpus {
         // make up the sentence first:
         // replace "\n"
         // replace all those multiple spaces with a single space
-        sentence.replace("\n", " ");
-        sentence.replaceAll("\\s+", " ");
+        sentence = sentence.replace("\n", " ");
+        sentence = sentence.replaceAll("\\s+", " ");
+        Stack<MyNode> tagStack = new Stack<MyNode>();
+        int bracket = 0;
+        String token = "";
+        for (int i = 0; i < sentence.length(); i++) {
+            if (sentence.charAt(i) == '(') {
+                bracket++;
+                if (token.length() > 0) {
+                    token = FilterSpace(token);
+                    tagStack.push(new MyNode(token));
+                    token = "";
+                } else {
+                    continue;
+                }
+            } else if (sentence.charAt(i) == ')') {
+                bracket--;
+                if (token.length() > 0) {
+                    token = FilterSpace(token);
+                    String[] temps = token.split("\\s+");
+                    if (temps.length != 2) {
+                        System.out.println("Token has problem: " + token);
+                    }
+                    tagStack.push(new MyNode(temps[0]));
+                    token = "";
+                }
+                if (tagStack.isEmpty()) {
+                    continue;
+                }
 
+                MyNode child = tagStack.pop();
+                BuildCFGs(child);
 
+                if (!tagStack.isEmpty()) {
+                    MyNode parent = tagStack.peek();
+                    parent.children.add(child.GetName());
+                } else {
+                    continue;
+                }
+
+            } else if (sentence.charAt(i) == ' ') {
+                if (token.length() == 0) {
+                    continue;
+                } else {
+                    token += sentence.charAt(i);
+                }
+            } else {
+                token += sentence.charAt(i);
+            }
+        }
+    }
+
+    private String FilterSpace(String token) {
+        int begin = 0;
+        int end = token.length() - 1;
+        while (begin < token.length()) {
+            if (token.charAt(begin) == ' ') {
+                begin++;
+            } else {
+                break;
+            }
+        }
+        while (end >= begin) {
+            if (token.charAt(end) == ' ') {
+                end--;
+            } else {
+                break;
+            }
+        }
+        if (begin == token.length()-1) {
+            System.out.println("Token has problem: " + token);  // for debug
+            return "";
+        }
+        return token.substring(begin, end+1);
+    }
+
+    private void BuildCFGs(MyNode node) {
+        if (node.children.size() == 0) {
+            // if has no child, it means this node is a leaf
+            // also add it into terminals
+            terminals.add(node.GetName());
+            return;
+        }
+
+        String directive = "";
+        for (int i = 0; i < node.children.size(); i++) {
+            if (i < node.children.size() - 1) {
+                directive += node.children.get(i) + "\t";
+            } else {
+                directive += node.children.get(i);
+            }
+        }
+
+        // store into CFG rules map
+        String name = node.GetName();
+        CFGNode cfgNode = null;
+        if (cfgs.containsKey(name)) {
+            cfgNode = cfgs.get(name);
+            if (cfgNode.childern.containsKey(directive)) {
+                int count = cfgNode.childern.get(directive) + 1;
+                cfgNode.childern.put(directive, count);
+            } else {
+                cfgNode.childern.put(directive, 1);
+            }
+        } else {
+            cfgNode = new CFGNode(name);
+            cfgNode.childern.put(directive, 1);
+        }
+        cfgs.put(name, cfgNode);
     }
 
     private String GetExtension(String filename) {
@@ -142,6 +248,14 @@ public class TrainCorpus {
         } else {
             return filename.substring(index + 1);
         }
+    }
+
+    public Map<String, CFGNode> getCFGs() {
+        return cfgs;
+    }
+
+    public Set<String> getTerminals() {
+        return terminals;
     }
 
 }
