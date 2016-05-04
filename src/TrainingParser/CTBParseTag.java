@@ -1,3 +1,4 @@
+package TrainingParser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -12,7 +13,7 @@ import java.util.Arrays;
  */
 public class CTBParseTag {
 
-  public static void segmentation(String sentence, Writer writer_2,
+  public static void segmentation(String fileType, String sentence, Writer writer_2,
       Writer writer_4, Writer  writer_5) {
     try {
       String[] words = sentence.split("\\s+");
@@ -20,7 +21,12 @@ public class CTBParseTag {
         String wordTag = words[i];
         String wordTagSplit[] = wordTag.split("_");
         String word = wordTagSplit[0];
-        String tag = wordTagSplit[1];
+        String tag = null;
+        if (fileType.equals("pos")) {
+          tag = wordTagSplit[1];
+        } else if (fileType.equals("seg")){
+          tag = "";
+        }
         if (word.length() == 1) {
           writer_2.write(word + "\t" + "B" + "\t" + tag + "\n");
           writer_4.write(word + "\t" + "S" + "\t" + tag + "\n");
@@ -55,7 +61,7 @@ public class CTBParseTag {
     } catch (IOException e) {}
   }
 
-  public static void parseFiles(String dataPath, String resultPath) {
+  public static void parseFiles(String dataPath, String resultPath, String fileType) {
     File directory = new File(dataPath);
     File[] fileList = directory.listFiles();
     File[] trainingList = Arrays.copyOfRange(fileList, 0, (int)Math.rint(fileList.length * 0.9));
@@ -69,11 +75,11 @@ public class CTBParseTag {
               new FileOutputStream(resultPath + File.separator + "training_5.txt"))));
 
       for (File file: trainingList) {
-        if (file.getName().endsWith(".pos")) {
+        if (file.getName().endsWith(fileType)) {
           String line;
           BufferedReader br = new BufferedReader(new FileReader(file));
           while ((line = br.readLine()) != null) {
-            segmentation(line, writer_2, writer_4, writer_5);
+            segmentation(fileType, line, writer_2, writer_4, writer_5);
           }
         }
       }
@@ -88,10 +94,12 @@ public class CTBParseTag {
       Writer writer_5D = new BufferedWriter((new OutputStreamWriter(
               new FileOutputStream(resultPath + File.separator + "develop_5.txt"))));
       for (File file: developList) {
-        String line;
-        BufferedReader br = new BufferedReader(new FileReader(file));
-        while ((line = br.readLine()) != null) {
-          segmentation(line, writer_2D, writer_4D, writer_5D);
+        if (file.getName().endsWith(fileType)) {
+          String line;
+          BufferedReader br = new BufferedReader(new FileReader(file));
+          while ((line = br.readLine()) != null) {
+            segmentation(fileType, line, writer_2D, writer_4D, writer_5D);
+          }
         }
       }
       writer_2D.close();
@@ -103,6 +111,21 @@ public class CTBParseTag {
   }
 
   public static void main(String[] args) {
-    parseFiles(args[0], args[1]);
+    String dataPath = null;
+    String resultPath = null;
+    String fileType = null;
+    for (int i = 0; i < args.length; i++) {
+      if (args[i].equals("-d")) {
+        dataPath = args[i + 1];
+        i++;
+      } else if (args[i].equals("-r")) {
+        resultPath = args[i + 1];
+        i++;
+      } else if (args[i].equals("-ft")) {
+        fileType = args[i + 1];
+        i++;
+      }
+    }
+    parseFiles(dataPath, resultPath, fileType);
   }
 }

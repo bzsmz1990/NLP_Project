@@ -91,7 +91,7 @@ public class FeatureBuilder {
             read.close();
 
         } catch (FileNotFoundException e) {
-            System.out.println("Data file doesn't exit");
+            System.out.println("Data file doesn't exist");
             System.exit(1);
         } catch (UnsupportedEncodingException e) {
             System.out.println("Doesn't exit the encoding way");
