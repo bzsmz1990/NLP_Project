@@ -20,6 +20,14 @@ public class TestTrainCorpus {
         trainCorpus.Training();
         Map<String, CFGNode> cfgs = trainCorpus.getCFGs();
         Set<String> terminals = trainCorpus.getTerminals();
+        CFGNode dummy = null;
+        if (cfgs.containsKey("SENTENCE")) {
+            dummy = cfgs.get("SENTENCE");
+            System.out.println("Correct");
+        } else {
+            System.out.println("Error");
+        }
+
 //        for (String tag : terminals) {
 //            System.out.println("Tag:\t" + tag);
 //        }
