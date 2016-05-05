@@ -43,7 +43,7 @@ public class ChangeCNF {
                 while (right.size() > 2) {
                     String tagOne = right.get(0);
                     String tagTwo = right.get(1);
-                    String combo = tagOne + "|" + tagTwo;
+                    String combo = tagOne + "\t" + tagTwo;
                     String label;
                     if (newRules.containsKey(combo)) {
                         label = newRules.get(combo);

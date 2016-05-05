@@ -81,7 +81,7 @@ public class PCFGParser {
                     }
                     else {
                         inner = new HashMap<String, Double>();
-                        invertedUnit.put(left, inner);
+                        invertedUnit.put(right, inner);
                     }
                     inner.put(left, prob);
                 }
@@ -98,7 +98,7 @@ public class PCFGParser {
             }
             reader.close();
         } catch (IOException e) {
-            System.out.println();
+            System.out.println("read in original tag file not successful");
         }
     }
 
@@ -123,18 +123,8 @@ public class PCFGParser {
         for (int j = 0; j < length; j++) {
             // initialize one-word probability
             String pos = posTag[j];
-            for (Map.Entry<String, HashMap<String, Double>> entry: rules.entrySet()) {
-                String left = entry.getKey();
-                HashMap<String, Double> temp = entry.getValue();
-                for (Map.Entry<String, Double> tempEntry: temp.entrySet()) {
-                    String right = tempEntry.getKey();
-                    if (right.equals(pos)) {
-                        double prob = tempEntry.getValue();
-                        List<PCFGNode> children = new ArrayList<PCFGNode>();
-                        dp[j][j][getID(left)] = new PCFGNode(left, words[j], children, prob);
-                    }
-                }
-            }
+            dp[j][j][getID(pos)] = new PCFGNode(pos, words[j], new ArrayList<PCFGNode>(), 1);
+            calculateUnit(dp, getID(pos), j, j);
             // go up
             for (int i = j - 1; i >= 0; i--) {
                 for (int k = i; k < j; k++) {
