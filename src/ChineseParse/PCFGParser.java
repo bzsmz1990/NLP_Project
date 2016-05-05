@@ -7,27 +7,33 @@ import java.io.*;
  * Created by Wenzhao on 5/3/16.
  */
 public class PCFGParser {
+    private final String USAGE = "java PCFGParser sentenceFilePath ruleFilePath originalTagFilePath saveFilePath";
     private HashMap<String, HashMap<String, Double>> rules =
             new HashMap<String, HashMap<String, Double>>();
     private HashMap<String, Integer> tagToId =
             new HashMap<String, Integer>();
-    private HashMap<String, String> deletedRule =
-            new HashMap<String, String>();
     private HashSet<String> originalTag =
             new HashSet<String>();
+    private HashMap<String, HashMap<String, Double>> invertedUnit =
+            new HashMap<String, HashMap<String, Double>>();
 
     public void run(String sentenceFile, String ruleFile, String originalTagFile, String saveFile) {
-        //prepare(ruleFile, originalTagFile);
+        prepare(ruleFile, originalTagFile);
         try {
             BufferedReader reader = new BufferedReader(new FileReader(sentenceFile));
             BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile));
             String line;
             List<String> list = new ArrayList<String>();
+            int count = 0;
             while ((line = reader.readLine()) != null) {
                 if (line.length() == 0) {
                     if (list.size() != 0) {
                         String parseResult = CKY(list);
                         writer.write(parseResult + "\n");
+                        count++;
+                        System.out.println(parseResult);
+                        System.out.println("processed " + count + " sentences");
+                        list.clear();
                     }
                 }
                 else {
@@ -42,38 +48,66 @@ public class PCFGParser {
         }
     }
 
-//    private void prepare(String ruleFile, String originalTagFile) {
-//        // get map
-//        for (Map.Entry<NonTerminal, HashMap<>>) {
-//            String left = entry.getKey().toString();
-//            if (!tagToId.containsKey(left)) {
-//                int index = tagToId.size();
-//                tagToId.put(left, index);
-//                idToTag.put(index, left);
-//            }
-//            HashMap<Production, Double> temp = entry.getValue();
-//            for (Map.Entry<Production, Double> innerEntry: temp.entrySet()) {
-//                String[] rightArray = innerEntry.getKey().getArray();
-//                if (rightArray.length == 1) {
-//                    if (!tagToId.containsKey(rightArray[0])) {
-//                        int index = tagToId.size();
-//                        tagToId.put(rightArray[0], index);
-//                        idToTag.put(index, rightArray[0]);
-//                    }
-//                }
-//                String right = organize(Arrays.asList(rightArray));
-//                HashMap<String, Double> innerMap;
-//                if (rules.containsKey(right)) {
-//                    innerMap = rules.get(right);
-//                }
-//                else {
-//                    innerMap = new HashMap<String, Double>();
-//                    rules.put(right, innerMap);
-//                }
-//                innerMap.put(left, innerEntry.getValue());
-//            }
-//        }
-//    }
+    private void prepare(String ruleFile, String originalTagFile) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(ruleFile));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split("\\s+");
+                for (int i = 0; i <= data.length - 2; i++) {
+                    assignID(data[i]);
+                }
+                String left = data[0];
+                double prob = Double.parseDouble(data[data.length - 1]);
+                List<String> rightList = new ArrayList<String>();
+                for (int i = 1; i <= data.length - 2; i++) {
+                    rightList.add(data[i]);
+                }
+                String rightCombo = organize(rightList);
+                HashMap<String, Double> innerMap;
+                if (rules.containsKey(left)) {
+                    innerMap = rules.get(left);
+                }
+                else {
+                    innerMap = new HashMap<String, Double>();
+                    rules.put(left, innerMap);
+                }
+                innerMap.put(rightCombo, prob);
+                if (data.length == 3) {
+                    String right = data[1];
+                    HashMap<String, Double> inner;
+                    if (invertedUnit.containsKey(right)) {
+                        inner = invertedUnit.get(right);
+                    }
+                    else {
+                        inner = new HashMap<String, Double>();
+                        invertedUnit.put(left, inner);
+                    }
+                    inner.put(left, prob);
+                }
+            }
+            reader.close();
+        } catch (IOException e) {
+            System.out.println("read in rule file not successful");
+        }
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(originalTagFile));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                originalTag.add(line);
+            }
+            reader.close();
+        } catch (IOException e) {
+            System.out.println();
+        }
+    }
+
+    private void assignID(String tag) {
+        if (!tagToId.containsKey(tag)) {
+            int id = tagToId.size();
+            tagToId.put(tag, id);
+        }
+    }
 
     private String CKY(List<String> input) {
         int length = input.size();
@@ -110,7 +144,7 @@ public class PCFGParser {
                         for (Map.Entry<String, Double> tempEntry: temp.entrySet()) {
                             String right = tempEntry.getKey();
                             double ruleProb = tempEntry.getValue();
-                            String[] separate = right.split("|");
+                            String[] separate = right.split("\t");
                             if (separate.length == 1) {
                                 continue;
                             }
@@ -126,6 +160,7 @@ public class PCFGParser {
                                 children.add(dp[i][k][idOne]);
                                 children.add(dp[k + 1][j][idTwo]);
                                 dp[i][j][idLeft] = new PCFGNode(left, null, children, prob);
+                                calculateUnit(dp, idLeft, i, j);
                             }
                         }
                     }
@@ -135,12 +170,36 @@ public class PCFGParser {
         return generateResult(dp);
     }
 
+    private void calculateUnit(PCFGNode[][][] dp, int tagID, int leftIndex, int rightIndex) {
+        PCFGNode node = dp[leftIndex][rightIndex][tagID];
+        if (!invertedUnit.containsKey(node.thisTag)) {
+            return;
+        }
+        HashMap<String, Double> innerMap = invertedUnit.get(node.thisTag);
+        List<String> ancestors = new ArrayList<String>();
+        for (String left: innerMap.keySet()) {
+            ancestors.add(left);
+        }
+        for (String left: ancestors) {
+            double addedProb = innerMap.get(left);
+            double prob = addedProb * node.prob;
+            if (dp[leftIndex][rightIndex][getID(left)] != null &&
+                    dp[leftIndex][rightIndex][getID(left)].prob > prob) {
+                continue;
+            }
+            List<PCFGNode> children = new ArrayList<PCFGNode>();
+            children.add(dp[leftIndex][rightIndex][tagID]);
+            dp[leftIndex][rightIndex][getID(left)] = new PCFGNode(left, null, children, prob);
+            calculateUnit(dp, getID(left), leftIndex, rightIndex);
+        }
+    }
+
     private String generateResult(PCFGNode[][][] dp) {
         PCFGNode root = null;
         double maxProb = 0;
         int n = dp.length;
         for (int i = 0; i < dp[0][n - 1].length; i++) {
-            if (dp[0][n - 1][i].prob > maxProb) {
+            if (dp[0][n - 1][i] != null && dp[0][n - 1][i].prob > maxProb) {
                 maxProb = dp[0][n - 1][i].prob;
                 root = dp[0][n - 1][i];
             }
@@ -158,20 +217,6 @@ public class PCFGParser {
         // in this case, this node must be terminal
         if (children.size() == 0) {
             return;
-        }
-        // in this case, may need to add deleted rules in the middle
-        else if (children.size() == 1) {
-//            PCFGNode leftNode = node;
-//            // must be a terminal here or else there's error in the CNF creation step
-//            PCFGNode terminalNode = children.get(0);
-//            leftNode.children.clear();
-//            while (deletedRule.containsKey(leftNode.thisTag)) {
-//                String right = deletedRule.get(leftNode.thisTag);
-//                PCFGNode rightNode = new PCFGNode(right, null, new ArrayList<PCFGNode>(), 1);
-//                leftNode.children.add(rightNode);
-//                leftNode = rightNode;
-//            }
-//            leftNode.children.add(terminalNode);
         }
         // in this case, need to make sure all the node's children are original tags, before
         // moving down to the next level
@@ -213,7 +258,7 @@ public class PCFGParser {
     private String organize(List<String> list) {
         StringBuilder builder = new StringBuilder();
         for (String s: list) {
-            builder.append(s + "|");
+            builder.append(s + "\t");
         }
         builder.deleteCharAt(builder.length() - 1);
         return builder.toString();

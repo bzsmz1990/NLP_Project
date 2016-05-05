@@ -13,7 +13,7 @@ import java.util.*;
  * Created by Wenzhao on 5/4/16.
  */
 public class Scorer {
-    private final String USAGE = "java ParseScorer goldFolder ownFile";
+    private final String USAGE = "java ParseScorer goldFolderPath ownFilePath";
     private List<String> goldSentences = new ArrayList<String>();
 
     private enum FileType {
@@ -38,7 +38,7 @@ public class Scorer {
                 System.out.println("goldFile must be in fid extension");
             }
         }
-        //count(ownFile);
+        count(ownFile);
     }
 
     private void count(String ownFile) {
@@ -52,8 +52,16 @@ public class Scorer {
                     System.out.println("The number of lines don't match");
                     return;
                 }
+                System.out.println("gold parse:");
+                System.out.println(goldSentences.get(total));
+                System.out.println("own parse");
+                System.out.println(line);
                 if (line.equals(goldSentences.get(total))) {
                     correct++;
+                    System.out.println("correct");
+                }
+                else {
+                    System.out.println("incorrect");
                 }
                 total++;
             }

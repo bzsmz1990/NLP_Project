@@ -7,6 +7,7 @@ import java.util.*;
  * Created by Wenzhao on 5/5/16.
  */
 public class ChangeCNF {
+    private static final String USAGE = "java ChangeCNF dataFolderPath emptyRuleFilePath emptyOriginalTagFilePath";
     private static Set<String> terminals;
     private static List<Rule> ruleList;
 
@@ -169,10 +170,10 @@ public class ChangeCNF {
         return ruleList;
     }
 
-    private static void saveUniqueTag(Map<String, CFGNode> cfgs, String uniqueTagFile) {
+    private static void saveOriginalTag(Map<String, CFGNode> cfgs, String originalTagFile) {
         HashSet<String> set = new HashSet<String>();
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(uniqueTagFile));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(originalTagFile));
             for (Map.Entry<String, CFGNode> entry: cfgs.entrySet()) {
                 String left = entry.getKey();
                 set.add(left);
@@ -196,12 +197,12 @@ public class ChangeCNF {
     public static void main(String[] args) {
         String dataFolder = args[0];
         String ruleFile = args[1];
-        String uniqueTagFile = args[2];
+        String originalTagFile = args[2];
         TrainCorpus trainCorpus = new TrainCorpus(dataFolder);
         trainCorpus.Training();
         Map<String, CFGNode> cfgs = trainCorpus.getCFGs();
         terminals = trainCorpus.getTerminals();
-        saveUniqueTag(cfgs, uniqueTagFile);
+        saveOriginalTag(cfgs, originalTagFile);
         ruleList = getRules(cfgs);
         processRules();
         saveRules(ruleFile);
