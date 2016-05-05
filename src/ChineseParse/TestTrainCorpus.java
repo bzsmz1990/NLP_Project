@@ -20,6 +20,9 @@ public class TestTrainCorpus {
         trainCorpus.Training();
         Map<String, CFGNode> cfgs = trainCorpus.getCFGs();
         Set<String> terminals = trainCorpus.getTerminals();
+//        for (String tag : terminals) {
+//            System.out.println("Tag:\t" + tag);
+//        }
         System.out.println("Finish");
     }
 }

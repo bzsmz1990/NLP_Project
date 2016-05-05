@@ -13,11 +13,11 @@ public class CFGNode {
     // B is grammer right part
 
     public String name;    // grammer left part
-    public Map<String, Integer> childern;  // grammer right part -> count
+    public Map<Production, Integer> childern;  // grammer right part -> count
 
     public CFGNode(String n) {
         name = n;
-        childern = new HashMap<String, Integer>();
+        childern = new HashMap<Production, Integer>();
     }
 
 }
