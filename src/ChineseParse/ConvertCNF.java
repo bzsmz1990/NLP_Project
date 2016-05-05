@@ -11,6 +11,7 @@ import java.io.IOException;
  */
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,6 +20,7 @@ public class ConvertCNF {
     private Set<String> terminals;
     private Map<String, Map<Production, Double>> fromGrammar;
     private Map<String, Map<Production, Double>> toGrammar;
+    private Map<String, String> sudoNTreuse = new HashMap<String, String>();
 
     public ConvertCNF(Map<String, Map<Production, Integer>> grammar) {
         fromGrammar = calcProb(grammar);
@@ -31,11 +33,11 @@ public class ConvertCNF {
     public Map<String, Map<Production, Double>> convertToCNF() {
         remedyMix();
         Map<String, Map<Production, Double>> tmp = toGrammar;
-        remedyUnitProduction();
-        while (!tmp.equals(toGrammar)) {
-            tmp = toGrammar;
-            remedyUnitProduction();
-        }
+//        remedyUnitProduction();
+//        while (!tmp.equals(toGrammar)) {
+//            tmp = toGrammar;
+//            remedyUnitProduction();
+//        }
         remedyLongProduction();
         return toGrammar;
     }
@@ -75,27 +77,27 @@ public class ConvertCNF {
         toGrammar = result;
     }
 
-    private void remedyUnitProduction() {
-        Map<String, Map<Production, Double>> result = new HashMap<String, Map<Production, Double>>();
-        for (String nt : toGrammar.keySet()) {
-            result.put(nt, new HashMap<Production, Double>());
-            for (Production p : toGrammar.get(nt).keySet()) {
-                if (p.size() == 1 && !terminals.contains(p.get(0))) {
-                    //unit production
-                    double base = toGrammar.get(nt).get(p);
-                    String tmp = p.get(0);
-                    Map<Production, Double> transfer = toGrammar.get(tmp);
-                    for (Production pp : transfer.keySet()) {
-                        result.get(nt).put(pp, base * transfer.get(pp));
-                    }
-                    //result.get(nt).put(p, 0.0);
-                } else {
-                    result.get(nt).put(p, toGrammar.get(nt).get(p));
-                }
-            }
-        }
-        toGrammar = result;
-    }
+//    private void remedyUnitProduction() {
+//        Map<String, Map<Production, Double>> result = new HashMap<String, Map<Production, Double>>();
+//        for (String nt : toGrammar.keySet()) {
+//            result.put(nt, new HashMap<Production, Double>());
+//            for (Production p : toGrammar.get(nt).keySet()) {
+//                if (p.size() == 1 && !terminals.contains(p.get(0))) {
+//                    //unit production
+//                    double base = toGrammar.get(nt).get(p);
+//                    String tmp = p.get(0);
+//                    Map<Production, Double> transfer = toGrammar.get(tmp);
+//                    for (Production pp : transfer.keySet()) {
+//                        result.get(nt).put(pp, base * transfer.get(pp));
+//                    }
+//                    //result.get(nt).put(p, 0.0);
+//                } else {
+//                    result.get(nt).put(p, toGrammar.get(nt).get(p));
+//                }
+//            }
+//        }
+//        toGrammar = result;
+//    }
 
     private void remedyLongProduction() {
         Map<String, Map<Production, Double>> result = new HashMap<String, Map<Production, Double>>();
@@ -103,27 +105,43 @@ public class ConvertCNF {
             result.put(nt, new HashMap<Production, Double>());
             for (Production p : toGrammar.get(nt).keySet()) {
                 if (p.size() > 2) {
-                    while (toGrammar.keySet().contains("X" + sudoNTcount)) {
+//                    while (toGrammar.keySet().contains("X" + sudoNTcount)) {
+//                        sudoNTcount++;
+//                    }
+                	String headComb = p.get(0) + "," + p.get(1);
+                	String lastSudoNT = null;
+                	if (!sudoNTreuse.containsKey(headComb)) {
+                		String head = "X" + sudoNTcount;
+                        Production headProduction = new Production(2);
+                        headProduction.set(0, p.get(0));
+                        headProduction.set(1, p.get(1));
+                        result.put(head, new HashMap<Production, Double>());
+                        result.get(head).put(headProduction, 1.0);
+                        sudoNTreuse.put(headComb, head);
                         sudoNTcount++;
-                    }
-                    String head = "X" + sudoNTcount;
-                    Production headProduction = new Production(2);
-                    headProduction.set(0, p.get(0));
-                    headProduction.set(1, p.get(1));
-                    result.put(head, new HashMap<Production, Double>());
-                    result.get(head).put(headProduction, 1.0);
-                    sudoNTcount++;
+                        lastSudoNT = head;
+                	} else {
+                		lastSudoNT = sudoNTreuse.get(headComb);
+                	}
+                    
                     for (int i = 2; i < p.size() - 1 ; i++ ) {
-                        String xi = "X" + sudoNTcount;
-                        Production pi = new Production(2);
-                        pi.set(0, "X" + (sudoNTcount - 1));
-                        pi.set(1, p.get(i));
-                        result.put(xi, new HashMap<Production, Double>());
-                        result.get(xi).put(pi, 1.0);
-                        sudoNTcount++;
+                    	String comb = lastSudoNT + "," + p.get(i);
+                    	if (!sudoNTreuse.containsKey(comb)) {
+                    		String xi = "X" + sudoNTcount;
+                            Production pi = new Production(2);
+                            pi.set(0, lastSudoNT);
+                            pi.set(1, p.get(i));
+                            result.put(xi, new HashMap<Production, Double>());
+                            result.get(xi).put(pi, 1.0);
+                            sudoNTreuse.put(comb, xi);
+                            sudoNTcount++;
+                            lastSudoNT = xi;
+                    	} else {
+                    		lastSudoNT = sudoNTreuse.get(comb);
+                    	}
                     }
                     Production tailProduction = new Production(2);
-                    tailProduction.set(0, "X" + (sudoNTcount - 1));
+                    tailProduction.set(0, lastSudoNT);
                     tailProduction.set(1, p.get(p.size() - 1));
                     result.get(nt).put(tailProduction, toGrammar.get(nt).get(p));
                 } else {
@@ -171,10 +189,34 @@ public class ConvertCNF {
         fw.close();
     }
     
+    public void saveOriginalTag(Map<String, CFGNode> cfgs, String originalTagFile) {
+        HashSet<String> set = new HashSet<String>();
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(originalTagFile));
+            for (Map.Entry<String, CFGNode> entry: cfgs.entrySet()) {
+                String left = entry.getKey();
+                set.add(left);
+                Map<Production, Integer> children = entry.getValue().childern;
+                for (Map.Entry<Production, Integer> innerEntry: children.entrySet()) {
+                    Production p = innerEntry.getKey();
+                    for (int i = 0; i < p.size(); i++) {
+                        set.add(p.get(i));
+                    }
+                }
+            }
+            for (String s: set) {
+                writer.write(s + "\n");
+            }
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("save unique tag file not successful");
+        }
+    }
+    
     public static void main(String[] args) throws IOException {
     	String dataFolder = args[0];
         String ruleFile = args[1];
-        //String PosTagFile = args[2];
+        String originalTagFile = args[2];
         TrainCorpus trainCorpus = new TrainCorpus(dataFolder);
         trainCorpus.Training();
         Map<String, CFGNode> cfgs = trainCorpus.getCFGs();
@@ -185,6 +227,7 @@ public class ConvertCNF {
         }
         ConvertCNF convert = new ConvertCNF(original);
         convert.setTerminals(trainCorpus.getTerminals());
+        convert.saveOriginalTag(cfgs, originalTagFile);
         convert.convertToCNF();
         File f = new File(ruleFile);
         convert.saveResultToFile(f);
