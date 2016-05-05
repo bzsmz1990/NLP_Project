@@ -65,9 +65,44 @@ class Production {
 }
 
 enum Terminal {
-	to,
-	be,
-	continued;
+	NN,
+	VV,
+	JJ,
+	NR,
+	PU,
+	NT,
+	NR_SHORT,
+	M,
+	SB,
+	P,
+	DT,
+	FW,
+	_NONE_,
+	OD,
+	X,
+	SP,
+	ON,
+	CC,
+	CD,
+	IJ,
+	DEC,
+	AD,
+	DEG,
+	VA,
+	MSP,
+	VC,
+	VE,
+	CS,
+	NN_SHORT,
+	DER,
+	NT_SHORT,
+	AS,
+	DEV,
+	ETC,
+	LB,
+	LC,
+	PN,
+	BA;
 
 	public static boolean containTerminal(String str) {
 		if (str == null) {
