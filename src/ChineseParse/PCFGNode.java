@@ -14,7 +14,7 @@ public class PCFGNode {
     public PCFGNode (String tag, String word, List<PCFGNode> list, double p) {
         thisTag = tag;
         thisWord = word;
-        children = list;
+        children = new ArrayList<PCFGNode>(list);
         prob = p;
     }
 }

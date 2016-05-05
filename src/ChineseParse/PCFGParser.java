@@ -17,7 +17,7 @@ public class PCFGParser {
             new HashSet<String>();
 
     public void run(String sentenceFile, String ruleFile, String originalTagFile, String saveFile) {
-        prepare(ruleFile, originalTagFile);
+        //prepare(ruleFile, originalTagFile);
         try {
             BufferedReader reader = new BufferedReader(new FileReader(sentenceFile));
             BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile));
