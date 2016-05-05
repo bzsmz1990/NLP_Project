@@ -207,12 +207,17 @@ public class TrainCorpus {
         }
 
         String directive = "";
+//        for (int i = 0; i < node.children.size(); i++) {
+//            if (i < node.children.size() - 1) {
+//                directive += node.children.get(i) + "\t";
+//            } else {
+//                directive += node.children.get(i);
+//            }
+//        }
+
+        Production production = new Production(node.children.size());
         for (int i = 0; i < node.children.size(); i++) {
-            if (i < node.children.size() - 1) {
-                directive += node.children.get(i) + "\t";
-            } else {
-                directive += node.children.get(i);
-            }
+            production.set(i, node.children.get(i));
         }
 
         // store into CFG rules map
@@ -220,15 +225,15 @@ public class TrainCorpus {
         CFGNode cfgNode = null;
         if (cfgs.containsKey(name)) {
             cfgNode = cfgs.get(name);
-            if (cfgNode.childern.containsKey(directive)) {
-                int count = cfgNode.childern.get(directive) + 1;
-                cfgNode.childern.put(directive, count);
+            if (cfgNode.childern.containsKey(production)) {
+                int count = cfgNode.childern.get(production) + 1;
+                cfgNode.childern.put(production, count);
             } else {
-                cfgNode.childern.put(directive, 1);
+                cfgNode.childern.put(production, 1);
             }
         } else {
             cfgNode = new CFGNode(name);
-            cfgNode.childern.put(directive, 1);
+            cfgNode.childern.put(production, 1);
         }
         cfgs.put(name, cfgNode);
     }
