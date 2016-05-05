@@ -4,7 +4,7 @@ package ChineseParse;
  * @author mirrorlol
  *
  */
-class Production {
+public class Production {
 	private String[] elements;
 
 	public Production(int i) {
@@ -59,64 +59,10 @@ class Production {
 			builder.append(elements[i]);
 			builder.append("\t");
 		}
-		//builder.append("\n");
 		return builder.toString();
 	}
 }
 
-enum Terminal {
-	NN,
-	VV,
-	JJ,
-	NR,
-	PU,
-	NT,
-	NR_SHORT,
-	M,
-	SB,
-	P,
-	DT,
-	FW,
-	_NONE_,
-	OD,
-	X,
-	SP,
-	ON,
-	CC,
-	CD,
-	IJ,
-	DEC,
-	AD,
-	DEG,
-	VA,
-	MSP,
-	VC,
-	VE,
-	CS,
-	NN_SHORT,
-	DER,
-	NT_SHORT,
-	AS,
-	DEV,
-	ETC,
-	LB,
-	LC,
-	PN,
-	BA;
 
-	public static boolean containTerminal(String str) {
-		if (str == null) {
-			return false;
-		}
-		if (str.equals("")) {
-			return false;
-		}
-		for (Terminal t : Terminal.values()) {
-			if (t.toString().equals(str)) {
-				return true;
-			}
-		}
-		return false;
-	}
-}
+
 
