@@ -51,17 +51,16 @@ class Production {
 		}
 		return result;
 	}
-}
-
-class NonTerminal {
-	private String name;
-
-	public NonTerminal(String name) {
-		this.name = name;
-	}
-
+	
+	@Override
 	public String toString() {
-		return name;
+		StringBuilder builder = new StringBuilder();
+		for (int i = 0; i < elements.length; i++) {
+			builder.append(elements[i]);
+			builder.append("\t");
+		}
+		//builder.append("\n");
+		return builder.toString();
 	}
 }
 
