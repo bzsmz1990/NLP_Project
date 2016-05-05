@@ -153,12 +153,19 @@ public class TrainCorpus {
                 }
 
                 MyNode child = tagStack.pop();
+                // because child node pop up, we know all its children
+                // in BuildCFGs(), child is actually the parent
                 BuildCFGs(child);
 
                 if (!tagStack.isEmpty()) {
                     MyNode parent = tagStack.peek();
                     parent.children.add(child.GetName());
                 } else {
+                    // already reach root
+                    // add dummy node
+                    MyNode dummy = new MyNode("SENTENCE");
+                    dummy.children.add(child.GetName());
+                    BuildCFGs(dummy);
                     continue;
                 }
 
