@@ -21,6 +21,7 @@ public class GroupWord {
 		}
 		String source = args[0];
 		String output = args[1];
+		boolean training = true;
 		try {
 			BufferedReader dataReader = new BufferedReader (new FileReader(source));
 			PrintWriter outputWriter = new PrintWriter (new FileWriter (output));
@@ -30,29 +31,39 @@ public class GroupWord {
 			while ((inputLine = dataReader.readLine()) != null) {
 				if (inputLine.isEmpty()) {
 					if (builder.length() != 0) {
-						outputWriter.println(builder.toString() + "\t" + lastTag);
+						if (training) {
+							outputWriter.println(builder.toString() + "\t" + lastTag);
+						}
+						else {
+							outputWriter.println(builder.toString());
+						}
 						builder = new StringBuilder();
 					}
 					outputWriter.println();
 				}
 				else {
 					String[] charInfo = inputLine.split("\\s+");
+					if (charInfo.length == 2) {
+						training = false;
+					}
 					if ((charInfo[1].equals("B") || charInfo[1].equals("S"))) {
 						if (builder.length() != 0) {
-							outputWriter.println(builder.toString() + "\t" + lastTag);
+							if (training) {
+								outputWriter.println(builder.toString() + "\t" + lastTag);
+							}
+							else {
+								outputWriter.println(builder.toString());
+							}
 							builder = new StringBuilder();
 						}
 						builder.append(charInfo[0]);
 					}
-//					else if (charInfo[1].equals("E")) {
-//						builder.append(charInfo[0]);
-//						outputWriter.println(builder.toString() + "\t" + lastTag);
-//						builder = new StringBuilder();
-//					}
 					else {
 						builder.append(charInfo[0]);
 					}
-					lastTag = charInfo[2];
+					if (training) {
+						lastTag = charInfo[2];
+					}
 				}
 			}
 			dataReader.close();
