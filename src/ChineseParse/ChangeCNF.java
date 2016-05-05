@@ -151,14 +151,17 @@ public class ChangeCNF {
             String left = entry.getKey();
             CFGNode node = entry.getValue();
             int count = 0;
-            Map<String, Integer> children = node.childern;
-            for (Map.Entry<String, Integer> innerEntry: children.entrySet()) {
+            Map<Production, Integer> children = node.childern;
+            for (Map.Entry<Production, Integer> innerEntry: children.entrySet()) {
                 count += innerEntry.getValue();
             }
-            for (Map.Entry<String, Integer> innerEntry: children.entrySet()) {
+            for (Map.Entry<Production, Integer> innerEntry: children.entrySet()) {
                 int currentCount = innerEntry.getValue();
-                String right = innerEntry.getKey();
-                String[] rightTags = right.split("\\t");
+                Production p = innerEntry.getKey();
+                String[] rightTags = new String[p.size()];
+                for (int i = 0; i < p.size(); i++) {
+                    rightTags[i] = p.get(i);
+                }
                 double prob = (double)currentCount / count;
                 ruleList.add(new Rule(left, Arrays.asList(rightTags), prob));
             }
@@ -173,11 +176,11 @@ public class ChangeCNF {
             for (Map.Entry<String, CFGNode> entry: cfgs.entrySet()) {
                 String left = entry.getKey();
                 set.add(left);
-                Map<String, Integer> children = entry.getValue().childern;
-                for (Map.Entry<String, Integer> innerEntry: children.entrySet()) {
-                    String[] rightTags = innerEntry.getKey().split("\\t");
-                    for (int i = 0; i < rightTags.length; i++) {
-                        set.add(rightTags[i]);
+                Map<Production, Integer> children = entry.getValue().childern;
+                for (Map.Entry<Production, Integer> innerEntry: children.entrySet()) {
+                    Production p = innerEntry.getKey();
+                    for (int i = 0; i < p.size(); i++) {
+                        set.add(p.get(i));
                     }
                 }
             }
