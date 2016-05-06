@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 
 /**
+ * Runs together with TrainCorpus
  * Created by Wenzhao on 5/5/16.
  */
 public class ChangeCNF {
