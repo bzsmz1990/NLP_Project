@@ -163,8 +163,8 @@ public class Tagger  {
         //calculateLamda();
         //assign the values determined by validation
         lambda[0] = 0.1;
-        lambda[1] = 0.1;
-        lambda[2] = 0.8;
+        lambda[1] = 0.2;
+        lambda[2] = 0.7;
     }
 
     private static void calculateLamda() {

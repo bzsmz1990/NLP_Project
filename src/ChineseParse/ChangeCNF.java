@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 
 /**
+ * Runs together with TrainCorpus
  * Created by Wenzhao on 5/5/16.
  */
 public class ChangeCNF {
@@ -43,7 +44,7 @@ public class ChangeCNF {
                 while (right.size() > 2) {
                     String tagOne = right.get(0);
                     String tagTwo = right.get(1);
-                    String combo = tagOne + "|" + tagTwo;
+                    String combo = tagOne + "\t" + tagTwo;
                     String label;
                     if (newRules.containsKey(combo)) {
                         label = newRules.get(combo);

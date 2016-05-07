@@ -6,24 +6,24 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Arrays;
 
 /**
- * Can choose between running separately, or running together with PCFGParser
+ * In fid files and the rule files, there are lots of '-NONE-' tags,
+ * but in develop.txt files, there are no such tags. So have to use this program
+ * to generate test files from fid files in order to match, instead of using develop.txt
+ *
  * Adapted from TrainCorpus.java by Chen Chen
- * Created by Wenzhao on 5/4/16.
+ * Created by Wenzhao on 5/5/16.
  */
-public class Scorer {
-    private final String USAGE = "java ParseScorer goldFolderPath ownFilePath";
-    private List<String> goldSentences = new ArrayList<String>();
-    private int currentPosFromParser = 0;
-    private int correctFromParser = 0;
+public class generateTestFile {
+    private static final String USAGE = "java ParseScorer goldFolderPath generatedFilePath";
+    private static List<String> testSentences = new ArrayList<String>();
 
-    public enum FileType {
-        HTML, RAW;
-    }
-
-    public Scorer(String goldFolder) {
+    public static void generateList(String goldFolder) {
         File folder = new File(goldFolder);
         if (!folder.exists() || !folder.isDirectory()) {
             System.out.println("Your data path should be a folder!");
@@ -44,70 +44,39 @@ public class Scorer {
         }
     }
 
-    public void runFromParser(String sentence) {
-        if (currentPosFromParser > goldSentences.size() - 1) {
-            System.out.println("The number of lines don't match");
-            return;
-        }
-        System.out.println("gold parse:");
-        System.out.println(goldSentences.get(currentPosFromParser));
-        System.out.println("own parse");
-        System.out.println(sentence);
-        if (sentence.equals(goldSentences.get(currentPosFromParser))) {
-            correctFromParser++;
-            System.out.println("correct");
-        }
-        else {
-            System.out.println("incorrect");
-        }
-        currentPosFromParser++;
-        if (currentPosFromParser == goldSentences.size()) {
-            System.out.println(correctFromParser + " out of " + goldSentences.size() +
-                    " sentences are correct.");
-            System.out.println("The parsing accuracy is " +
-                    (double)correctFromParser / goldSentences.size());
-        }
-    }
-
-    private void run(String ownFile) {
-        int total = 0;
-        int correct = 0;
+    private static void saveToFile(String filePath) {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(ownFile));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (total > goldSentences.size() - 1) {
-                    System.out.println("The number of lines don't match");
-                    return;
+            BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+            for (int i = 0; i < testSentences.size(); i++) {
+                System.out.println("processing " + i + " sentence");
+                String s = testSentences.get(i);
+                int index = s.indexOf("(", 0);
+                while (index >= 0 && index < s.length()) {
+                    int nextLeft = s.indexOf("(", index + 1);
+                    int nextRight = s.indexOf(")", index + 1);
+                    if (nextRight < nextLeft || nextLeft == -1) {
+                        String part = s.substring(index + 1, nextRight);
+                        String[] data = part.split("\\s+");
+                        writer.write(data[1] + "\t" + data[0] + "\n");
+                    }
+                    index = nextLeft;
                 }
-                System.out.println("gold parse:");
-                System.out.println(goldSentences.get(total));
-                System.out.println("own parse:");
-                System.out.println(line);
-                if (line.equals(goldSentences.get(total))) {
-                    correct++;
-                    System.out.println("correct");
-                }
-                else {
-                    System.out.println("incorrect");
-                }
-                total++;
+                writer.write("\n");
             }
+            writer.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("save to file not successful");
         }
-        System.out.println(correct + " out of " + total +" sentences are correct.");
-        System.out.println("The parsing accuracy is " + (double)correct / total);
     }
 
-    private void ProcessOneFile(File file) {
+    private static void ProcessOneFile(File file) {
         String content = GetFileContent(file);
-        FileType fileType = null;
+        Scorer.FileType fileType = null;
         if (content.contains("<DOC>")) {
-            fileType = FileType.HTML;
+            fileType = Scorer.FileType.HTML;
             ProcessHTMLFile(content);
         } else if (content.charAt(0) == '('){
-            fileType = FileType.RAW;
+            fileType = Scorer.FileType.RAW;
             ProcessRAWFile(content);
         } else {
             System.out.println("File type is wrong: " + file.getName());
@@ -115,7 +84,7 @@ public class Scorer {
         }
     }
 
-    private String GetFileContent(File file) {
+    private static String GetFileContent(File file) {
         String content = "";
         String curLine = "";
         try {
@@ -136,7 +105,7 @@ public class Scorer {
         return content;
     }
 
-    private void ProcessHTMLFile(String content) {
+    private static void ProcessHTMLFile(String content) {
         Document doc = Jsoup.parse(content);
         Elements elements = doc.select("s");
         for (Element element : elements) {
@@ -147,7 +116,7 @@ public class Scorer {
         }
     }
 
-    private void ProcessRAWFile(String content) {
+    private static void ProcessRAWFile(String content) {
         String sentence = "";
         int bracket = 0;
         for (int i = 0; i < content.length(); i++) {
@@ -165,17 +134,17 @@ public class Scorer {
         }
     }
 
-    private void ProcessSentence(String sentence) {
+    private static void ProcessSentence(String sentence) {
         // make up the sentence first:
         // replace "\n"
         // replace all those multiple spaces with a single space
         sentence = sentence.replace("\n", " ");
         sentence = sentence.replaceAll("\\s+", " ");
         sentence = sentence.trim();
-        goldSentences.add(sentence);
+        testSentences.add(sentence);
     }
 
-    private String GetExtension(String filename) {
+    private static String GetExtension(String filename) {
         if (filename == null) {
             return null;
         }
@@ -192,7 +161,7 @@ public class Scorer {
         }
     }
 
-    private class Comp implements Comparator<File> {
+    private static class Comp implements Comparator<File> {
         @Override
         public int compare(File one, File two) {
             String nameOne = one.getName();
@@ -213,11 +182,9 @@ public class Scorer {
     }
 
     public static void main(String[] args) {
-        String goldFolder = args[0];
-        String ownFile = args[1];
-        Scorer scorer = new Scorer(goldFolder);
-        scorer.run(ownFile);
+        String goldFolderPath = args[0];
+        String generatedFilePath = args[1];
+        generateList(goldFolderPath);
+        saveToFile(generatedFilePath);
     }
 }
-
-
